@@ -1,13 +1,17 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PiTouchDate.ViewModels"
+        xmlns:controls="using:PiTouchDate.Controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="480"
+        mc:Ignorable="d"
         x:Class="PiTouchDate.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        Background="{DynamicResource Black}"
         Icon="/Assets/avalonia-logo.ico"
-        Title="PiTouchDate">
+        Title="PiTouchDate"
+        WindowDecorations="None"
+        Width="780" Height="460">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
