@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:PiTouchDate.Controls"
+             x:Class="PiTouchDate.Controls.Overlay">
+
+    <UserControl.Template>
+        <ControlTemplate>
+            <Panel>
+                <Button Background="rgba(0, 0, 0, 0.7)"
+                        Command="{TemplateBinding CloseCommand}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                    <Button.Template>
+                        <ControlTemplate>
+                            <Panel Background="{TemplateBinding Background}"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch" />
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Border Name="PART_Panel"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Padding="{TemplateBinding Padding}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Width="{TemplateBinding ContentWidth}"
+                        Height="{TemplateBinding ContentHeight}">
+                    
+                    <Grid RowDefinitions="Auto,*">
+                        <!-- Overlay icon, title and close button -->
+                        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+
+                            <ContentPresenter Grid.Column="0"
+                                              Content="{TemplateBinding Icon}"
+                                              IsVisible="{Binding Icon, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                              Margin="0,0,10,0"
+                                              MaxHeight="14" MaxWidth="14"
+                                              VerticalAlignment="Center">
+                                <ContentPresenter.DataTemplates>
+                                    <!-- Semi.Avalonia Icons -->
+                                    <DataTemplate DataType="Geometry">
+                                        <PathIcon Data="{Binding}" Width="14" Height="14" />
+                                    </DataTemplate>
+                                    <!-- Bitmap images -->
+                                    <DataTemplate DataType="IImage">
+                                        <Image Source="{Binding}" />
+                                    </DataTemplate>
+                                </ContentPresenter.DataTemplates>
+                            </ContentPresenter>
+                            
+                            <TextBlock Grid.Column="1" Text="{TemplateBinding Title}" 
+                                       FontSize="14"
+                                       FontWeight="Bold" 
+                                       VerticalAlignment="Center"/>
+
+                            <Button Grid.Column="2"
+                                    Foreground="White"
+                                    Theme="{DynamicResource BorderlessButton}"
+                                    Command="{TemplateBinding CloseCommand}">
+                                <PathIcon Data="{DynamicResource SemiIconClose}" />
+                            </Button>
+                        </Grid>
+                    
+                        <ContentPresenter Grid.Row="1" Content="{TemplateBinding Content}" />
+                    </Grid>
+
+                </Border>
+            </Panel>
+        </ControlTemplate>
+    </UserControl.Template>
+
+</UserControl>

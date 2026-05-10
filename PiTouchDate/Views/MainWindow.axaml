@@ -18,43 +18,46 @@
     </Design.DataContext>
 
 
-    <Grid ColumnDefinitions="55*, 45*">
-        <Grid Grid.Column="0" RowDefinitions="*, Auto">
-            <controls:Card Grid.Row="0">
-                <Grid RowDefinitions="*,Auto,Auto,*">
-                    <TextBlock Grid.Row="1" Text="{Binding WeekDay}" HorizontalAlignment="Center" Classes="H1"/>
-                    <TextBlock Grid.Row="2" Text="{Binding CurrentDate}" HorizontalAlignment="Center" />
-                </Grid>
-            </controls:Card>
+    <Panel>
 
-            <controls:Card Grid.Row="1" Command="{Binding OnWeatherCardClicked}">
-                Weather
-            </controls:Card>
-        </Grid>
-       
-        <Grid Grid.Column="1" RowDefinitions="Auto, *, Auto">
-            <controls:Card Grid.Row="0">
-                <TextBlock Text="{Binding CurrentTime}"/>
-            </controls:Card>
-            
-            <controls:Card Grid.Row="1">
-                Calendar
-            </controls:Card>
+        <Grid ColumnDefinitions="55*, 45*">
+            <Grid Grid.Column="0" RowDefinitions="*, Auto">
+                <controls:Card Grid.Row="0">
+                    <Grid RowDefinitions="*,Auto,Auto,*">
+                        <TextBlock Grid.Row="1" Text="{Binding WeekDay}" HorizontalAlignment="Center" Classes="H1"/>
+                        <TextBlock Grid.Row="2" Text="{Binding CurrentDate}" HorizontalAlignment="Center" />
+                    </Grid>
+                </controls:Card>
 
-            <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
-                <controls:Card Grid.Column="0" Command="{Binding OnBrightnessCardClicked}">
-                    B
-                </controls:Card>
-                
-                <controls:Card Grid.Column="1" Command="{Binding OnWifiCardClicked}">
-                    W
-                </controls:Card>
-                
-                <controls:Card Grid.Column="2" Command="{Binding OnPowerCardClicked}">
-                    P
+                <controls:Card Grid.Row="1" Command="{Binding OnWeatherCardClicked}">
+                    Weather
                 </controls:Card>
             </Grid>
-        </Grid>
-    </Grid>
+        
+            <Grid Grid.Column="1" RowDefinitions="Auto, *, Auto">
+                <controls:Card Grid.Row="0">
+                    <TextBlock Text="{Binding CurrentTime}"/>
+                </controls:Card>
+                
+                <controls:Card Grid.Row="1">
+                    Calendar
+                </controls:Card>
 
+                <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
+                    <controls:Card Grid.Column="0" Command="{Binding OnBrightnessCardClicked}">
+                        B
+                    </controls:Card>
+                    
+                    <controls:Card Grid.Column="1" Command="{Binding OnWifiCardClicked}">
+                        W
+                    </controls:Card>
+                    
+                    <controls:Card Grid.Column="2" Command="{Binding OnPowerCardClicked}">
+                        P
+                    </controls:Card>
+                </Grid>
+            </Grid>
+        </Grid>
+
+    </Panel>
 </Window>
