@@ -2,6 +2,11 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using Avalonia.Interactivity;
+using PiTouchDate.Controls;
+using PiTouchDate.Overlays;
+using Avalonia.Controls;
+using Avalonia;
+using Avalonia.Media;
 
 namespace PiTouchDate.ViewModels;
 
@@ -36,6 +41,34 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _screenBrightness;
         set => this.RaiseAndSetIfChanged(ref _screenBrightness, value);
+    }
+
+    private bool _isOverlayVisible = false;
+    public bool IsOverlayVisible
+    {
+        get => _isOverlayVisible;
+        set => this.RaiseAndSetIfChanged(ref _isOverlayVisible, value);
+    }
+
+    private string _currentOverlayTitle = "";
+    public string CurrentOverlayTitle
+    {
+        get => _currentOverlayTitle;
+        set => this.RaiseAndSetIfChanged(ref _currentOverlayTitle, value);
+    }
+
+    private IconElement? _currentOverlayIcon = null;
+    public IconElement? CurrentOverlayIcon
+    {
+        get => _currentOverlayIcon;
+        set => this.RaiseAndSetIfChanged(ref _currentOverlayIcon, value);
+    }
+
+    private ViewModelBase? _currentOverlay = null;
+    public ViewModelBase? CurrentOverlay
+    {
+        get => _currentOverlay;
+        set => this.RaiseAndSetIfChanged(ref _currentOverlay, value);
     }
 
 
@@ -76,6 +109,7 @@ public class MainWindowViewModel : ViewModelBase
         if (forceUpdate || (now.Hour % 2 == 0 && now.Minute == 0))
         {
             // TODO: Update Weather
+            Console.WriteLine("Updating weather");
         }
 
 
@@ -85,27 +119,57 @@ public class MainWindowViewModel : ViewModelBase
         _previousDT = now;
     }
 
+    private IconElement? GetSemiIcon(string key)
+    {
+        if (Application.Current is not null && Application.Current.TryFindResource(key, out var res) && res is Geometry geo)
+        {
+            return new PathIcon { Data = geo };
+        }
+        return null;
+    }
 
     public void OnBrightnessCardClicked()
     {
-        // TODO: Show brightness overlay
+        // Not yet implemented overlay
+        CurrentOverlayTitle = "Luminosità";
+        CurrentOverlayIcon = GetSemiIcon("SemiIconSun");
+        CurrentOverlay = null;
+        IsOverlayVisible = true;
     }
 
 
     public void OnWifiCardClicked()
     {
-        // TODO: Shpw wi-fi selection overlay
+        CurrentOverlayTitle = "Impostazioni wi-fi";
+        CurrentOverlayIcon = GetSemiIcon("SemiIconWifi");
+        CurrentOverlay = new WifiSettingsViewModel();
+        IsOverlayVisible = true;
     }
 
 
     public void OnPowerCardClicked()
     {
-        // TODO: Show power options overlay
+        // Not yet implemented overlay
+        CurrentOverlayTitle = "Azioni di sistema";
+        CurrentOverlayIcon = GetSemiIcon("SemiIconPoweroff");
+        CurrentOverlay = null;
+        IsOverlayVisible = true;
     }
 
 
     public void OnWeatherCardClicked()
     {
-        // TODO: Show weather overlay
+        // Not yet implemented overlay
+        CurrentOverlayTitle = "Meteo";
+        CurrentOverlayIcon = GetSemiIcon("SemiIconCloud");
+        CurrentOverlay = null;
+        IsOverlayVisible = true;
+    }
+
+
+    public void CloseOverlay()
+    {
+        IsOverlayVisible = false;
+        CurrentOverlay = null;
     }
 }

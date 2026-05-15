@@ -38,12 +38,12 @@
                                               Content="{TemplateBinding Icon}"
                                               IsVisible="{Binding Icon, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}"
                                               Margin="0,0,10,0"
-                                              MaxHeight="14" MaxWidth="14"
+                                              MaxHeight="{DynamicResource SemiWidthIconMedium}" MaxWidth="{DynamicResource SemiWidthIconMedium}"
                                               VerticalAlignment="Center">
                                 <ContentPresenter.DataTemplates>
                                     <!-- Semi.Avalonia Icons -->
                                     <DataTemplate DataType="Geometry">
-                                        <PathIcon Data="{Binding}" Width="14" Height="14" />
+                                        <PathIcon Data="{Binding}" Width="{DynamicResource SemiWidthIconMedium}" Height="{DynamicResource SemiWidthIconMedium}" />
                                     </DataTemplate>
                                     <!-- Bitmap images -->
                                     <DataTemplate DataType="IImage">

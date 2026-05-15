@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PiTouchDate.ViewModels"
         xmlns:controls="using:PiTouchDate.Controls"
+        xmlns:overlays="using:PiTouchDate.Overlays"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -29,8 +30,26 @@
                     </Grid>
                 </controls:Card>
 
-                <controls:Card Grid.Row="1" Command="{Binding OnWeatherCardClicked}">
-                    Weather
+                <controls:Card Grid.Row="1" Command="{Binding OnWeatherCardClicked}" Height="100"
+                               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,0">
+                        <PathIcon Grid.Column="0" 
+                                  Data="{DynamicResource SemiIconCloud}" 
+                                  Width="32" Height="32" 
+                                  Foreground="{DynamicResource SemiBlue4Color}"
+                                  VerticalAlignment="Center"/>
+                        
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0">
+                            <TextBlock Text="22°C" FontSize="24" FontWeight="Bold"/>
+                            <TextBlock Text="Siena: Nuvoloso" Opacity="0.7" FontSize="12"/>
+                        </StackPanel>
+
+                        <PathIcon Grid.Column="2" 
+                                  Data="{DynamicResource SemiIconChevronRight}" 
+                                  Width="12" Height="12" 
+                                  Opacity="0.5"
+                                  VerticalAlignment="Center"/>
+                    </Grid>
                 </controls:Card>
             </Grid>
         
@@ -44,20 +63,26 @@
                 </controls:Card>
 
                 <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
-                    <controls:Card Grid.Column="0" Command="{Binding OnBrightnessCardClicked}">
-                        B
+                    <controls:Card Grid.Column="0" Command="{Binding OnBrightnessCardClicked}" Height="70">
+                        <PathIcon Data="{DynamicResource SemiIconSun}" Foreground="{DynamicResource SemiYellow5Color}"/>
                     </controls:Card>
                     
-                    <controls:Card Grid.Column="1" Command="{Binding OnWifiCardClicked}">
-                        W
+                    <controls:Card Grid.Column="1" Command="{Binding OnWifiCardClicked}" Height="70">
+                        <PathIcon Data="{DynamicResource SemiIconWifi}" Foreground="{DynamicResource SemiBlue3Color}" />
                     </controls:Card>
                     
-                    <controls:Card Grid.Column="2" Command="{Binding OnPowerCardClicked}">
-                        P
+                    <controls:Card Grid.Column="2" Command="{Binding OnPowerCardClicked}" Height="70">
+                        <PathIcon Data="{DynamicResource SemiIconPoweroff}" Foreground="{DynamicResource SemiRed3Color}" />
                     </controls:Card>
                 </Grid>
             </Grid>
         </Grid>
 
+        <controls:Overlay Title="{Binding CurrentOverlayTitle}"
+                          Icon="{Binding CurrentOverlayIcon}"
+                          IsVisible="{Binding IsOverlayVisible}" 
+                          CloseCommand="{Binding CloseOverlay}">
+            <ContentControl Content="{Binding CurrentOverlay}" />
+        </controls:Overlay>
     </Panel>
 </Window>
