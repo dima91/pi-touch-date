@@ -6,7 +6,7 @@
              xmlns:controls="using:PiTouchDate.Controls"
              xmlns:models="using:SharpWifiManager"
              mc:Ignorable="d"
-             Width="400" Height="300"
+             Width="680" Height="340"
              x:Class="PiTouchDate.Overlays.WifiSettingsView"
              x:DataType="vm:WifiSettingsViewModel">
 
@@ -17,14 +17,17 @@
                         Height="2" VerticalAlignment="Top" Foreground="{DynamicResource SemiBlue4Color}"/>
 
             <!-- Table header -->
-            <Grid Grid.Row="1" ColumnDefinitions="*, 80, 40" Margin="15, 10, 15, 5" Opacity="0.5">
+            <Grid Grid.Row="1" ColumnDefinitions="*, 80, 40" Margin="15, 10, 15, 5" Opacity="0.5"
+                  IsVisible="{Binding !IsRefreshError}">
                 <TextBlock Grid.Column="0" Text="NOME RETE" FontSize="10" FontWeight="Bold" LetterSpacing="0.5"/>
                 <TextBlock Grid.Column="1" Text="SEGNALE" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
             </Grid>
 
             <!-- Networks list -->
-            <ListBox Grid.Row="2" ItemsSource="{Binding Networks}" 
-                    Background="Transparent" BorderThickness="0" Margin="5,0">
+            <Panel Grid.Row="2">
+                <ListBox IsVisible="{Binding !IsRefreshError}"
+                         ItemsSource="{Binding Networks}"
+                         Background="Transparent" BorderThickness="0" Margin="5,0">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="models:WifiNetwork">
                         <controls:Card Margin="0,2" Padding="12,10"
@@ -57,12 +60,14 @@
                     </Style>
                 </ListBox.Styles>
             </ListBox>
+            </Panel>
         </Grid>
 
         <Grid IsVisible="{Binding SelectedNetwork, Converter={x:Static ObjectConverters.IsNotNull}}"
-              HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              RowDefinitions="Auto, Auto, *">
             <!-- Control buttons -->
-            <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,*" HorizontalAlignment="Stretch">
                 <Button Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
                         Background="Transparent" Command="{Binding CancelConnectionCommand}"
                         IsEnabled="{Binding !IsConnecting}">
@@ -71,11 +76,22 @@
                         <TextBlock Text="Indietro"/>
                     </StackPanel>
                 </Button>
-                <Button Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right"
+                
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                           Text="{Binding SelectedNetwork.Ssid}"/>
+                
+                <Button Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right"
                         Background="Transparent" Command="{Binding ConnectCommand}" IsEnabled="{Binding !IsConnecting}">
                         Connect
                 </Button>
             </Grid>
+
+            <!-- Passord input -->
+            <TextBox Grid.Row="1" HorizontalAlignment="Stretch" Margin="0,10,0,0" PasswordChar="●"
+                     Text="{Binding WifiPassword, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <!-- Screen keyboard -->
+            <controls:ScreenKeyboard Grid.Row="2" Margin="0,10,0,0" KeyPressCommand="{Binding KeyPressCommand}"/>
         </Grid>
     </Panel>
 </UserControl>

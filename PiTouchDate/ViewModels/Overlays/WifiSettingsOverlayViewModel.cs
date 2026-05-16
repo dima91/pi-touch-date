@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using PiTouchDate.ViewModels;
 using SharpWifiManager;
 using Avalonia.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,10 +14,11 @@ using System.Reactive;
 
 namespace PiTouchDate.Overlays;
 
-public class WifiSettingsViewModel : ViewModelBase
+public class WifiSettingsViewModel : ViewModelBase, IDisposable
 {
     private WifiManager _wifiManager;
     private Task<(bool Success, string Message)>? _connectionTask;
+    private readonly CancellationTokenSource _cts = new();
 
     private readonly ObservableAsPropertyHelper<bool> _isConnecting;
     public bool IsConnecting => _isConnecting.Value;
@@ -25,6 +27,13 @@ public class WifiSettingsViewModel : ViewModelBase
     public bool Scanning {
         get => _scanning;
         set => this.RaiseAndSetIfChanged(ref _scanning, value);
+    }
+
+    private bool _isRefreshError = false;
+    public bool IsRefreshError
+    {
+        get => _isRefreshError;
+        set => this.RaiseAndSetIfChanged(ref _isRefreshError, value);
     }
 
     private WifiNetwork? _selectedNetwork = null;
@@ -46,6 +55,8 @@ public class WifiSettingsViewModel : ViewModelBase
     // ----------  Commands  ----------
     public ReactiveCommand<Unit, bool> ConnectCommand { get; }
 
+    public ReactiveCommand<string, Unit> KeyPressCommand { get; }
+
     public ReactiveCommand<Unit, Unit> CancelConnectionCommand {get; }
 
 
@@ -54,35 +65,49 @@ public class WifiSettingsViewModel : ViewModelBase
     {
         _wifiManager = new WifiManager();
         _connectionTask = null;
+        KeyPressCommand = ReactiveCommand.Create<string>(OnKeyPress);
         ConnectCommand = ReactiveCommand.CreateFromTask(ConnectCommandHandler);
         CancelConnectionCommand = ReactiveCommand.Create(CancelConnectionCommandHandler);
 
         _isConnecting = ConnectCommand.IsExecuting
             .ToProperty(this, x => x.IsConnecting, scheduler: RxApp.MainThreadScheduler);
 
-        _ = StartScanningLoop();
+        _ = StartScanningLoop(_cts.Token);
     }
 
 
-    private async Task StartScanningLoop()
+    private async Task StartScanningLoop(CancellationToken ct)
     {
-        while (true)
+        while (!ct.IsCancellationRequested)
         {
             if (SelectedNetwork == null)
             {
                 Scanning = true;
                 try {
                     await RefreshNetworks();
+                    IsRefreshError = false;
                 }
-                catch {}
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Got exception: {ex}");
+                    IsRefreshError = true;
+                }
                 finally
                 {
                     Scanning = false;
                 }
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
         }
+    }
+
+
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
+        GC.SuppressFinalize(this);
     }
 
 
@@ -142,5 +167,19 @@ public class WifiSettingsViewModel : ViewModelBase
     private void CancelConnectionCommandHandler()
     {
         SelectedNetwork = null;
+    }
+
+
+    public void OnKeyPress(string key)
+    {
+        if (key == "Backspace")
+        {
+            if (!string.IsNullOrEmpty(WifiPassword))
+                WifiPassword = WifiPassword.Substring(0, WifiPassword.Length - 1);
+        }
+        else
+        {
+            WifiPassword += key;
+        }
     }
 }

@@ -170,6 +170,7 @@ public class MainWindowViewModel : ViewModelBase
     public void CloseOverlay()
     {
         IsOverlayVisible = false;
+        (CurrentOverlay as IDisposable)?.Dispose();
         CurrentOverlay = null;
     }
 }
