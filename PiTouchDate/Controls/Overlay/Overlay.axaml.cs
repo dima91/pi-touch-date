@@ -68,6 +68,6 @@ public partial class Overlay : UserControl
         BorderBrush = Brushes.Black;
         BorderThickness = new Thickness(1);
         CornerRadius = new CornerRadius(12);
-        Padding = new Thickness(20);
+        Padding = new Thickness(10);
     }
 }

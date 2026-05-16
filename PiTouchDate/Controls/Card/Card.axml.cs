@@ -69,6 +69,15 @@ public partial class Card : UserControl
         this.Padding = new Thickness(10);
         this.BorderThickness = new Thickness(1);
         this.CornerRadius = new CornerRadius(12);
+        this.HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center;
+        this.VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center;
+        /* this.BoxShadow = new BoxShadows (new BoxShadow
+        {
+            Blur = 10,
+            OffsetX = 5,
+            OffsetY = 5,
+            Color = Color.Parse("#40000000")
+        }); */
     }
 
     private bool HasHandlers => Command != null || _clickHandlers != null;

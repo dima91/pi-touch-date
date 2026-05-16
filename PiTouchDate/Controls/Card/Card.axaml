@@ -21,8 +21,8 @@
                 </Border.Transitions>
 
                 <ContentPresenter Content="{TemplateBinding Content}"
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"/>
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
             </Border>
         </ControlTemplate>
     </UserControl.Template>
