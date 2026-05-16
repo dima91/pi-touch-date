@@ -33,7 +33,7 @@ public partial class ScreenKeyboard : UserControl
         remove => RemoveHandler(KeyPressEvent, value);
     }
 
-    private enum KeyboardMode { Lower, Upper, Symbols }
+    private enum KeyboardMode { Lower, Upper, Symbols, Symbols2 }
 
     // label, action, column width multiplier
     private record struct KeyDef(string Label, string Action, double Width = 1.0);
@@ -59,7 +59,15 @@ public partial class ScreenKeyboard : UserControl
         [K("1"), K("2"), K("3"), K("4"), K("5"), K("6"), K("7"), K("8"), K("9"), K("0")],
         [K("!"), K("@"), K("#"), K("$"), K("%"), K("&"), K("*"), K("("), K(")"), K("-"), K("?")],
         [K("_"), K("="), K("+"), K("["), K("]"), K("{"), K("}"), K(";"), K(":"), K("'")],
-        [Sp("abc", "ModeLower", 2.0), Sp("spazio", "Space", 6.0), Sp("⌫", "Backspace", 2.0)],
+        [Sp("abc", "ModeLower", 1.5), Sp("▸", "ModeSymbols2", 1.5), Sp("spazio", "Space", 5.0), Sp(".", ".", 0.75), Sp("⌫", "Backspace", 1.25)],
+    ];
+
+    private static readonly KeyDef[][] SymbolRows2 =
+    [
+        [K("^"), K("~"), K("`"), K("\""), K("<"), K(">"), K("/"), K("\\"), K("|"), K(",")],
+        [K("."), K("€"), K("£"), K("¥"), K("°"), K("•"), K("–"), K("—"), K("×"), K("÷")],
+        [K("±"), K("™"), K("©"), K("®"), K("←"), K("→"), K("↑"), K("↓"), K("§"), K("¶")],
+        [Sp("◀", "ModeSymbols", 1.5), Sp("abc", "ModeLower", 1.5), Sp("spazio", "Space", 5.0), Sp("⌫", "Backspace", 2.0)],
     ];
 
     private static KeyDef K(string key) => new(key, key);
@@ -89,6 +97,7 @@ public partial class ScreenKeyboard : UserControl
         {
             KeyboardMode.Upper => UpperRows,
             KeyboardMode.Symbols => SymbolRows,
+            KeyboardMode.Symbols2 => SymbolRows2,
             _ => LowerRows,
         };
 
@@ -134,7 +143,7 @@ public partial class ScreenKeyboard : UserControl
         var button = new Button { Content = key.Label };
         button.Classes.Add("key");
 
-        bool isSpecial = key.Action is "ModeUpper" or "ModeLower" or "ModeSymbols"
+        bool isSpecial = key.Action is "ModeUpper" or "ModeLower" or "ModeSymbols" or "ModeSymbols2"
                                     or "Backspace" or "Space" or "123" or "abc";
 
         if (isSpecial) button.Classes.Add("key-special");
@@ -148,9 +157,10 @@ public partial class ScreenKeyboard : UserControl
     {
         switch (action)
         {
-            case "ModeUpper":   _mode = KeyboardMode.Upper;   BuildKeyboard(); return;
-            case "ModeLower":   _mode = KeyboardMode.Lower;   BuildKeyboard(); return;
-            case "ModeSymbols": _mode = KeyboardMode.Symbols; BuildKeyboard(); return;
+            case "ModeUpper":    _mode = KeyboardMode.Upper;    BuildKeyboard(); return;
+            case "ModeLower":    _mode = KeyboardMode.Lower;    BuildKeyboard(); return;
+            case "ModeSymbols":  _mode = KeyboardMode.Symbols;  BuildKeyboard(); return;
+            case "ModeSymbols2": _mode = KeyboardMode.Symbols2; BuildKeyboard(); return;
         }
 
         var key = action == "Space" ? " " : action;

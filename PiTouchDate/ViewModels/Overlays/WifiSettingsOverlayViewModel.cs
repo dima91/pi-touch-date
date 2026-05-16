@@ -50,6 +50,19 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
         set => this.RaiseAndSetIfChanged(ref _wifiPassword, value);
     }
 
+    private bool _showPassword = false;
+    public bool ShowPassword
+    {
+        get => _showPassword;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showPassword, value);
+            this.RaisePropertyChanged(nameof(PasswordMaskChar));
+        }
+    }
+
+    public char PasswordMaskChar => ShowPassword ? '\0' : '●';
+
     public ObservableCollection<WifiNetwork> Networks { get; } = new();
 
     // ----------  Commands  ----------
@@ -57,7 +70,9 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
 
     public ReactiveCommand<string, Unit> KeyPressCommand { get; }
 
-    public ReactiveCommand<Unit, Unit> CancelConnectionCommand {get; }
+    public ReactiveCommand<Unit, Unit> CancelConnectionCommand { get; }
+
+    public ReactiveCommand<Unit, Unit> ToggleShowPasswordCommand { get; }
 
 
 
@@ -68,6 +83,7 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
         KeyPressCommand = ReactiveCommand.Create<string>(OnKeyPress);
         ConnectCommand = ReactiveCommand.CreateFromTask(ConnectCommandHandler);
         CancelConnectionCommand = ReactiveCommand.Create(CancelConnectionCommandHandler);
+        ToggleShowPasswordCommand = ReactiveCommand.Create(() => { ShowPassword = !ShowPassword; });
 
         _isConnecting = ConnectCommand.IsExecuting
             .ToProperty(this, x => x.IsConnecting, scheduler: RxApp.MainThreadScheduler);
@@ -130,6 +146,7 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
     {
         SelectedNetwork = network;
         WifiPassword = string.Empty;
+        ShowPassword = false;
     }
 
     // ----------  Commands handlers  ----------
