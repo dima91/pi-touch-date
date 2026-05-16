@@ -1,0 +1,20 @@
+[Unit]
+Description=Pi TouchDate executable
+After=network.target systemd-user-sessions.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=4
+User=pi
+WorkingDirectory=/home/pi/pi-touch-date/
+ExecStart=/usr/bin/startx /home/pi/pi-touch-date/PiTouchDate
+
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
+TTYPath=/dev/tty7
+PAMName=login
+
+[Install]
+WantedBy=multi-user.target
