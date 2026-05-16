@@ -80,9 +80,9 @@
 
         <controls:Overlay Title="{Binding CurrentOverlayTitle}"
                           Icon="{Binding CurrentOverlayIcon}"
-                          IsVisible="{Binding IsOverlayVisible}" 
+                          IsVisible="{Binding IsOverlayVisible}"
                           CloseCommand="{Binding CloseOverlay}">
-            <ContentControl Content="{Binding CurrentOverlay}" />
+            <ContentControl Content="{Binding CurrentOverlay}"/>
         </controls:Overlay>
     </Panel>
 </Window>

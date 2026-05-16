@@ -2,3 +2,4 @@ bin
 obj
 *.lscache
 publish-to-pi.sh
+*.zip
