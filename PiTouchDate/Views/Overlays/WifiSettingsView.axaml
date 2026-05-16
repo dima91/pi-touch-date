@@ -25,6 +25,8 @@
 
             <!-- Networks list -->
             <Panel Grid.Row="2">
+                <controls:Spinner IsVisible="{Binding IsRefreshError}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <ListBox IsVisible="{Binding !IsRefreshError}"
                          ItemsSource="{Binding Networks}"
                          Background="Transparent" BorderThickness="0" Margin="5,0">

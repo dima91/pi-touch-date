@@ -89,7 +89,7 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Got exception: {ex}");
+                    Console.WriteLine($"Got exception: {ex.GetType()}");
                     IsRefreshError = true;
                 }
                 finally
