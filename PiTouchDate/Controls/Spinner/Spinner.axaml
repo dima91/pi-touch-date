@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="PiTouchDate.Controls.Spinner">
+
+    <Border Name="PART_Ring" Width="40" Height="40">
+        <Canvas Width="40" Height="40">
+            <Path Canvas.Left="0" Canvas.Top="0"
+                  Data="M 20,2 A 18,18 0 1 1 2,20"
+                  Stroke="White" StrokeThickness="3" StrokeLineCap="Round"
+                  Opacity="0.85"/>
+        </Canvas>
+    </Border>
+</UserControl>
