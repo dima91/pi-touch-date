@@ -1,0 +1,14 @@
+[Unit]
+Description=GitHub runner agent
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=4
+User=pi
+WorkingDirectory=/home/pi/actions-runner
+ExecStart=/bin/bash run.sh
+
+[Install]
+WantedBy=multi-user.target
