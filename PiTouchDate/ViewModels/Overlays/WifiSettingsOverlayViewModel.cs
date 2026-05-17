@@ -100,8 +100,13 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
             {
                 Scanning = true;
                 try {
-                    await RefreshNetworks();
+                    await RefreshNetworks(ct);
                     IsRefreshError = false;
+                }
+                catch (OperationCanceledException)
+                {
+                    Scanning = false;
+                    return;
                 }
                 catch (Exception ex)
                 {
@@ -114,7 +119,14 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
                 }
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
         }
     }
 
@@ -127,9 +139,9 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
     }
 
 
-    private async Task RefreshNetworks ()
+    private async Task RefreshNetworks(CancellationToken ct = default)
     {
-        IReadOnlyList<WifiNetwork> currentNetworks = await _wifiManager.GetNetworksAsync();
+        IReadOnlyList<WifiNetwork> currentNetworks = await _wifiManager.GetNetworksAsync(cancellationToken: ct);
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
