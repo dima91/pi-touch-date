@@ -28,7 +28,8 @@
                         <Viewbox Grid.Row="0" Margin="16,0,16,8">
                             <TextBlock Text="{Binding WeekDay}" Classes="H1" FontWeight="Bold"/>
                         </Viewbox>
-                        <TextBlock Grid.Row="1" Text="{Binding CurrentDate}" HorizontalAlignment="Center" Margin="8,0,8,8"/>
+                        <TextBlock Grid.Row="1" Text="{Binding CurrentDate}" HorizontalAlignment="Center"
+                                   Margin="8,0,8,8" Foreground="{DynamicResource SemiLightBlue6}" FontSize="18"/>
                     </Grid>
                 </controls:Card>
 
