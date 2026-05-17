@@ -50,14 +50,6 @@
             <Setter Property="Foreground" Value="White"/>
         </Style>
 
-        <!-- Selected: brighter blue — overrides today -->
-        <Style Selector="Button.day.selected /template/ Border#DayBg">
-            <Setter Property="Background" Value="{DynamicResource SemiBlue6Color}"/>
-        </Style>
-        <Style Selector="Button.day.selected">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-
         <!-- Days from adjacent months: dimmed -->
         <Style Selector="Button.day.otherMonth">
             <Setter Property="Opacity" Value="0.35"/>
@@ -105,11 +97,8 @@
                 <DataTemplate DataType="controls:CalendarDay">
                     <Button Classes="day"
                             Classes.today="{Binding IsToday}"
-                            Classes.selected="{Binding IsSelected}"
                             Classes.otherMonth="{Binding IsOtherMonth}"
-                            Content="{Binding DayNumber}"
-                            Command="{Binding #CalRoot.SelectDayCommand}"
-                            CommandParameter="{Binding Date}"/>
+                            Content="{Binding DayNumber}"/>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
