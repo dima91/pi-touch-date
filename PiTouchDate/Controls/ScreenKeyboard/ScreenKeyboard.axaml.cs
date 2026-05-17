@@ -59,7 +59,7 @@ public partial class ScreenKeyboard : UserControl
         [K("1"), K("2"), K("3"), K("4"), K("5"), K("6"), K("7"), K("8"), K("9"), K("0")],
         [K("!"), K("@"), K("#"), K("$"), K("%"), K("&"), K("*"), K("("), K(")"), K("-"), K("?")],
         [K("_"), K("="), K("+"), K("["), K("]"), K("{"), K("}"), K(";"), K(":"), K("'")],
-        [Sp("abc", "ModeLower", 1.5), Sp("▸", "ModeSymbols2", 1.5), Sp("spazio", "Space", 5.0), Sp(".", ".", 0.75), Sp("⌫", "Backspace", 1.25)],
+        [Sp("abc", "ModeLower", 1.5), Sp("▶", "ModeSymbols2", 1.5), Sp("spazio", "Space", 5.0), Sp(".", ".", 0.75), Sp("⌫", "Backspace", 1.25)],
     ];
 
     private static readonly KeyDef[][] SymbolRows2 =
@@ -67,7 +67,7 @@ public partial class ScreenKeyboard : UserControl
         [K("^"), K("~"), K("`"), K("\""), K("<"), K(">"), K("/"), K("\\"), K("|"), K(",")],
         [K("."), K("€"), K("£"), K("¥"), K("°"), K("•"), K("–"), K("—"), K("×"), K("÷")],
         [K("±"), K("™"), K("©"), K("®"), K("←"), K("→"), K("↑"), K("↓"), K("§"), K("¶")],
-        [Sp("◀", "ModeSymbols", 1.5), Sp("abc", "ModeLower", 1.5), Sp("spazio", "Space", 5.0), Sp("⌫", "Backspace", 2.0)],
+        [Sp("abc", "ModeLower", 1.5), Sp("◀", "ModeSymbols", 1.5), Sp("spazio", "Space", 5.0), Sp("⌫", "Backspace", 2.0)],
     ];
 
     private static KeyDef K(string key) => new(key, key);
