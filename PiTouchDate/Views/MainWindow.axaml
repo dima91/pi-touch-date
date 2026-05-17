@@ -63,8 +63,10 @@
                     </Viewbox>
                 </controls:Card>
                 
-                <controls:Card Grid.Row="1">
-                    Calendar
+                <controls:Card Grid.Row="1" Padding="6"
+                               HorizontalContentAlignment="Stretch"
+                               VerticalContentAlignment="Stretch">
+                    <controls:Calendar/>
                 </controls:Card>
 
                 <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
