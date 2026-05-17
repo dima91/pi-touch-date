@@ -121,7 +121,7 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
 
             try
             {
-                await Task.Delay(TimeSpan.FromSeconds(5), ct).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
