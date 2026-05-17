@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:PiTouchDate.Controls"
+             x:Class="PiTouchDate.Controls.Calendar"
+             x:Name="CalRoot">
+
+    <UserControl.Styles>
+
+        <!-- Custom template for day buttons: full control over hover/today/selected states -->
+        <Style Selector="Button.day">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SemiGrey5Color}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="DayBg"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Content="{TemplateBinding Content}"
+                                              Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style Selector="Button.day:pointerover /template/ Border#DayBg">
+            <Setter Property="Background" Value="#20FFFFFF"/>
+        </Style>
+
+        <!-- Today: blue background — overrides hover -->
+        <Style Selector="Button.day.today /template/ Border#DayBg">
+            <Setter Property="Background" Value="{DynamicResource SemiBlue4Color}"/>
+        </Style>
+
+        <!-- Today: white text -->
+        <Style Selector="Button.day.today">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- Days from adjacent months: dimmed -->
+        <Style Selector="Button.day.otherMonth">
+            <Setter Property="Opacity" Value="0.35"/>
+        </Style>
+
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
+
+        <!-- Header: ‹ Maggio 2026 › -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,6">
+            <Button Grid.Column="0" Classes="Link" Padding="8,4" Background="Transparent"
+                    Command="{Binding #CalRoot.PreviousMonthCommand}">
+                <PathIcon Data="{DynamicResource SemiIconChevronLeft}" Width="14" Height="14"/>
+            </Button>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding #CalRoot.HeaderText}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontWeight="SemiBold" FontSize="13"/>
+            <Button Grid.Column="2" Classes="Link" Padding="8,4" Background="Transparent"
+                    Command="{Binding #CalRoot.NextMonthCommand}">
+                <PathIcon Data="{DynamicResource SemiIconChevronRight}" Width="14" Height="14"/>
+            </Button>
+        </Grid>
+
+        <!-- Day-of-week labels, Monday-first (Italian) -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*,*,*" Margin="0,0,0,2">
+            <TextBlock Grid.Column="0" Text="L" HorizontalAlignment="Center" Opacity="0.45" FontSize="10"/>
+            <TextBlock Grid.Column="1" Text="M" HorizontalAlignment="Center" Opacity="0.45" FontSize="10"/>
+            <TextBlock Grid.Column="2" Text="M" HorizontalAlignment="Center" Opacity="0.45" FontSize="10"/>
+            <TextBlock Grid.Column="3" Text="G" HorizontalAlignment="Center" Opacity="0.45" FontSize="10"/>
+            <TextBlock Grid.Column="4" Text="V" HorizontalAlignment="Center" Opacity="0.45" FontSize="10"/>
+            <TextBlock Grid.Column="5" Text="S" HorizontalAlignment="Center" Opacity="0.45" FontSize="10"/>
+            <TextBlock Grid.Column="6" Text="D" HorizontalAlignment="Center" Opacity="0.45" FontSize="10"/>
+        </Grid>
+
+        <!-- 6×7 day grid -->
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding #CalRoot.Days}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="7" Rows="6"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="controls:CalendarDay">
+                    <Button Classes="day"
+                            Classes.today="{Binding IsToday}"
+                            Classes.otherMonth="{Binding IsOtherMonth}"
+                            Content="{Binding DayNumber}"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Return to today -->
+        <Button Grid.Row="3" Classes="Link"
+                Content="Oggi"
+                Command="{Binding #CalRoot.GoToTodayCommand}"
+                HorizontalAlignment="Center"
+                Background="Transparent"
+                Margin="0,4,0,0"/>
+
+    </Grid>
+</UserControl>
