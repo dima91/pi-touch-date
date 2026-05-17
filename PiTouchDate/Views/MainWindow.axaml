@@ -24,14 +24,17 @@
         <Grid ColumnDefinitions="55*, 45*">
             <Grid Grid.Column="0" RowDefinitions="*, Auto">
                 <controls:Card Grid.Row="0">
-                    <Grid RowDefinitions="*,Auto,Auto,*">
-                        <TextBlock Grid.Row="1" Text="{Binding WeekDay}" HorizontalAlignment="Center" Classes="H1"/>
-                        <TextBlock Grid.Row="2" Text="{Binding CurrentDate}" HorizontalAlignment="Center" />
+                    <Grid RowDefinitions="*,Auto">
+                        <Viewbox Grid.Row="0" Margin="16,0,16,8">
+                            <TextBlock Text="{Binding WeekDay}" Classes="H1" FontWeight="Bold"/>
+                        </Viewbox>
+                        <TextBlock Grid.Row="1" Text="{Binding CurrentDate}" HorizontalAlignment="Center" Margin="8,0,8,8"/>
                     </Grid>
                 </controls:Card>
 
                 <controls:Card Grid.Row="1" Command="{Binding OnWeatherCardClicked}" Height="100"
                                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                    
                     <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,0">
                         <PathIcon Grid.Column="0" 
                                   Data="{DynamicResource SemiIconCloud}" 
@@ -54,8 +57,10 @@
             </Grid>
         
             <Grid Grid.Column="1" RowDefinitions="Auto, *, Auto">
-                <controls:Card Grid.Row="0">
-                    <TextBlock Text="{Binding CurrentTime}"/>
+                <controls:Card Grid.Row="0" Height="100">
+                    <Viewbox Margin="8,8">
+                        <TextBlock Text="{Binding CurrentTime}" FontWeight="Bold"/>
+                    </Viewbox>
                 </controls:Card>
                 
                 <controls:Card Grid.Row="1">
