@@ -36,6 +36,13 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _currentTime, value);
     }
 
+    private DateTime _calendarSelectedDate = DateTime.Today;
+    public DateTime CalendarSelectedDate
+    {
+        get => _calendarSelectedDate;
+        set => this.RaiseAndSetIfChanged(ref _calendarSelectedDate, value);
+    }
+
     private int _screenBrightness = 255;
     public int ScreenBrightness
     {
@@ -89,7 +96,7 @@ public class MainWindowViewModel : ViewModelBase
     private void _ReloadShownInfo(bool forceUpdate = false)
     {
         var now = DateTime.Now;
-        Console.WriteLine($"Fired at: {DateTime.Now:HH:mm:ss}");
+        Console.WriteLine($"Fired at {DateTime.Now:HH:mm:ss}");
 
         if (forceUpdate || _previousDT.Date != now.Date)
         {
@@ -102,7 +109,7 @@ public class MainWindowViewModel : ViewModelBase
 
             CurrentDate = now.ToString("d MMMM yyyy").ToUpper();
 
-            // TODO: Update calendar day
+            CalendarSelectedDate = now.Date;
         }
 
 
