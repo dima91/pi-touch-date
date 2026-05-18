@@ -7,13 +7,11 @@ using ReactiveUI;
 
 public class AppConfiguration : ReactiveObject
 {
-    // Adding a new property requires:
-    // 1. A backing field + public property below
-    // 2. A matching parameter in this constructor  ← compile error if missing
-    // 3. A default in the Defaults class           ← compile error if missing
-    // 4. A field in ConfigurationDto               ← compile error on Save()
-    // 5. A TryGetProperty block in Load()          ← no compile error, but covered by the rest
-
+    // To add a new configuration key:
+    // 1. Add a backing field + public property
+    // 2. Add a constructor parameter here         ← breaks Load() and DEFAULTS at compile time
+    // 3. Add the field to ConfigurationDto        ← breaks Save() at compile time
+    // 4. Add a Read() call in Load()              ← only runtime, but enforced by the above
     public AppConfiguration(double? latitude, double? longitude)
     {
         _latitude = latitude;
@@ -37,6 +35,7 @@ public class AppConfiguration : ReactiveObject
 
 public class ConfigurationService
 {
+    // Positional record: adding a field breaks the constructor call in Save() at compile time.
     private record ConfigurationDto(double? Latitude, double? Longitude);
 
     private const string ConfigFileName = "config.json";
@@ -47,20 +46,20 @@ public class ConfigurationService
 
     public AppConfiguration Configuration { get; private set; }
 
+    // Instance property (not static field) so the compiler checks it against the constructor signature.
     private AppConfiguration DEFAUTLS => new AppConfiguration(
-        latitude:null,
-        longitude:null
+        latitude: null,
+        longitude: null
     );
-
 
     public ConfigurationService(string? basePath = null)
     {
         basePath ??= AppContext.BaseDirectory;
         _configFilePath = Path.Combine(basePath, ConfigFileName);
         Configuration = Load();
+        // Subscribe after Load() to avoid triggering Save() during initialization.
         Configuration.Changed.Subscribe(_ => Save());
     }
-
 
     private AppConfiguration Load()
     {
@@ -98,7 +97,8 @@ public class ConfigurationService
         }
     }
 
-
+    // Returns the parsed value if the key exists (even if null), or defaultValue if the key is absent.
+    // Sets needsSave when a key is absent so the caller can persist the updated file.
     private static T? Read<T>(JsonElement root, string key, T? defaultValue,
         Func<JsonElement, T> parse, ref bool needsSave)
     {
@@ -111,7 +111,6 @@ public class ConfigurationService
 
         return el.ValueKind == JsonValueKind.Null ? default : parse(el);
     }
-
 
     private AppConfiguration Save(AppConfiguration? config = null)
     {
