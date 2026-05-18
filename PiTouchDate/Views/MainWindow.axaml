@@ -3,6 +3,7 @@
         xmlns:vm="using:PiTouchDate.ViewModels"
         xmlns:controls="using:PiTouchDate.Controls"
         xmlns:overlays="using:PiTouchDate.Overlays"
+        xmlns:utils="using:PiTouchDate.Utils.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -13,6 +14,10 @@
         Title="PiTouchDate"
         WindowDecorations="None"
         Width="780" Height="460">
+
+    <Window.Resources>
+        <utils:NullToDoubleDashConverter x:Key="NullToDoubleDash"/>
+    </Window.Resources>
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
@@ -44,8 +49,12 @@
                                   VerticalAlignment="Center"/>
                         
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0">
-                            <TextBlock Text="22°C" FontSize="24" FontWeight="Bold"/>
-                            <TextBlock Text="Siena: Nuvoloso" Opacity="0.7" FontSize="12"/>
+                            <TextBlock Text="{Binding CurrentTemperature, Converter={StaticResource NullToDoubleDash}, StringFormat='{}{0} °C'}" FontSize="24" FontWeight="Bold"/>
+                            <StackPanel Orientation="Horizontal" Opacity="0.7">
+                                <TextBlock Text="{Binding Placement, Converter={StaticResource NullToDoubleDash}}" FontSize="12"/>
+                                <TextBlock Text=" : " FontSize="12"/>
+                                <TextBlock Text="{Binding WeatherDescription, Converter={StaticResource NullToDoubleDash}}" FontSize="12"/>
+                            </StackPanel>
                         </StackPanel>
 
                         <PathIcon Grid.Column="2" 

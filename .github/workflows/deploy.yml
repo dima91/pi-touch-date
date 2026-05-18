@@ -38,10 +38,15 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ steps.resolve.outputs.run_id }}
 
+      - name: Secrets injection
+        run: |  
+          echo 'GEOCODE_API_KEY=${{ secrets.GEOCODE_API_KEY }}' > /home/pi/.secrets.env
+          cat /home/pi/.secrets.env
+
       - name: Deploy and Restart Service
         run: |
-          sudo systemctl stop pi-touch-date.service || true
+          systemctl stop pi-touch-date.service || true
           mkdir -p /home/pi/pi-touch-date
           cp -r ./deploy/* /home/pi/pi-touch-date/
           chmod +x /home/pi/pi-touch-date/PiTouchDate
-          sudo systemctl start pi-touch-date.service
+          systemctl start pi-touch-date.service
