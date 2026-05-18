@@ -251,10 +251,15 @@ public class MainWindowViewModel : ViewModelBase
 
     public void OnWeatherCardClicked()
     {
-        // Not yet implemented overlay
         CurrentOverlayTitle = "Meteo";
         CurrentOverlayIcon = GetSemiIcon("SemiIconCloud");
-        CurrentOverlay = null;
+        CurrentOverlay = new WeatherSettingsViewModel(onSaved: () =>
+        {
+            CloseOverlay();
+            var config = GetService<ConfigurationService>().Configuration;
+            if (config.Latitude is { } lat && config.Longitude is { } lon)
+                _ = UpdateWeatherAndLocationAsync(lat, lon, config.GeocodeApiKey ?? "");
+        });
         IsOverlayVisible = true;
     }
 

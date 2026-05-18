@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:PiTouchDate.Overlays"
+             xmlns:controls="using:PiTouchDate.Controls"
+             mc:Ignorable="d"
+             Width="680" Height="340"
+             x:Class="PiTouchDate.Overlays.WeatherSettingsView"
+             x:DataType="vm:WeatherSettingsViewModel">
+
+    <Grid RowDefinitions="Auto, Auto, *" Margin="0,4,0,0">
+
+        <!-- Coordinate field selectors -->
+        <Grid Grid.Row="0" ColumnDefinitions="*, *">
+
+            <!-- Latitude -->
+            <Panel Grid.Column="0">
+                <controls:Card Command="{Binding SelectLatitudeCommand}"
+                               HorizontalContentAlignment="Stretch">
+                    <StackPanel Margin="4,2">
+                        <TextBlock Text="LATITUDINE" FontSize="10" FontWeight="Bold"
+                                   LetterSpacing="0.5" Opacity="0.5"/>
+                        <Panel Height="32" Margin="0,4,0,0">
+                            <TextBlock Text="{Binding LatitudeInput}" FontSize="22" FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding LatitudeInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            <TextBlock Text="es. 45.4642" FontSize="16" Opacity="0.3"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding LatitudeInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                        </Panel>
+                    </StackPanel>
+                </controls:Card>
+                <Border IsVisible="{Binding IsLatitudeActive}"
+                        BorderBrush="{DynamicResource SemiBlue4Color}"
+                        BorderThickness="2"
+                        CornerRadius="12"
+                        Margin="4"
+                        IsHitTestVisible="False"/>
+            </Panel>
+
+            <!-- Longitude -->
+            <Panel Grid.Column="1">
+                <controls:Card Command="{Binding SelectLongitudeCommand}"
+                               HorizontalContentAlignment="Stretch">
+                    <StackPanel Margin="4,2">
+                        <TextBlock Text="LONGITUDINE" FontSize="10" FontWeight="Bold"
+                                   LetterSpacing="0.5" Opacity="0.5"/>
+                        <Panel Height="32" Margin="0,4,0,0">
+                            <TextBlock Text="{Binding LongitudeInput}" FontSize="22" FontWeight="SemiBold"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding LongitudeInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                            <TextBlock Text="es. 9.1900" FontSize="16" Opacity="0.3"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding LongitudeInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                        </Panel>
+                    </StackPanel>
+                </controls:Card>
+                <Border IsVisible="{Binding IsLongitudeActive}"
+                        BorderBrush="{DynamicResource SemiBlue4Color}"
+                        BorderThickness="2"
+                        CornerRadius="12"
+                        Margin="4"
+                        IsHitTestVisible="False"/>
+            </Panel>
+
+        </Grid>
+
+        <!-- Save button -->
+        <Button Grid.Row="1" HorizontalAlignment="Stretch" Margin="4,6,4,0"
+                Command="{Binding SaveCommand}">
+            Salva
+        </Button>
+
+        <!-- Screen keyboard -->
+        <controls:ScreenKeyboard Grid.Row="2" Margin="0,8,0,0"
+                                 KeyPressCommand="{Binding KeyPressCommand}"/>
+
+    </Grid>
+</UserControl>
