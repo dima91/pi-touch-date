@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Reactive.Linq;
 using ReactiveUI;
 using Avalonia.Interactivity;
@@ -7,6 +9,7 @@ using PiTouchDate.Overlays;
 using Avalonia.Controls;
 using Avalonia;
 using Avalonia.Media;
+using PiTouchDate.Services;
 
 namespace PiTouchDate.ViewModels;
 
@@ -50,6 +53,30 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _screenBrightness, value);
     }
 
+    // ===============   Weather properties   ===============
+    private double? _currentTemperature = null;
+    public double? CurrentTemperature
+    {
+        get => _currentTemperature;
+        set => this.RaiseAndSetIfChanged(ref _currentTemperature, value);
+    }
+
+    private string? _placement = null;
+    public string? Placement
+    {
+        get => _placement;
+        set => this.RaiseAndSetIfChanged(ref _placement, value);
+    }
+
+    private string? _weatherDescription = null;
+    public string? WeatherDescription
+    {
+        get => _weatherDescription;
+        set => this.RaiseAndSetIfChanged(ref _weatherDescription, value);
+    }
+    
+
+    // ===============   Overlay properties   ===============
     private bool _isOverlayVisible = false;
     public bool IsOverlayVisible
     {
@@ -98,25 +125,41 @@ public class MainWindowViewModel : ViewModelBase
         var now = DateTime.Now;
         Console.WriteLine($"Fired at {DateTime.Now:HH:mm:ss}");
 
-        if (forceUpdate || _previousDT.Date != now.Date)
-        {
-            Console.WriteLine("Updating WeekDay, CurrentDate and Calendar day");
-            var day = now.ToString("dddd");
-            if (!string.IsNullOrEmpty(day))
+        try {
+            if (forceUpdate || _previousDT.Date != now.Date)
             {
-                WeekDay = char.ToUpperInvariant(day[0]) + day.Substring(1);
+                Console.WriteLine("Updating WeekDay, CurrentDate and Calendar day");
+                var day = now.ToString("dddd");
+                if (!string.IsNullOrEmpty(day))
+                {
+                    WeekDay = char.ToUpperInvariant(day[0]) + day.Substring(1);
+                }
+
+                CurrentDate = now.ToString("d MMMM yyyy").ToUpper();
+
+                CalendarSelectedDate = now.Date;
             }
-
-            CurrentDate = now.ToString("d MMMM yyyy").ToUpper();
-
-            CalendarSelectedDate = now.Date;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating date info: {ex.Message}");
         }
 
 
-        if (forceUpdate || (now.Hour % 2 == 0 && now.Minute == 0))
+        try {
+            if (forceUpdate || now.Minute % 15 == 0)
+            {
+                Console.WriteLine("Updating weather and placement");
+                var config = GetService<ConfigurationService>().Configuration;
+                if (config.Latitude is { } lat && config.Longitude is { } lon)
+                    _ = UpdateWeatherAndLocationAsync(lat, lon, config.GeocodeApiKey ?? "");
+                else
+                    Console.Error.WriteLine("Cannot update weather: coordinates not configured");
+            }
+        }
+        catch (Exception ex)
         {
-            // TODO: Update Weather
-            Console.WriteLine("Updating weather");
+            Console.WriteLine($"Error updating weather info: {ex.Message}");
         }
 
 
@@ -124,6 +167,48 @@ public class MainWindowViewModel : ViewModelBase
 
 
         _previousDT = now;
+    }
+
+    private async Task UpdateWeatherAndLocationAsync(double lat, double lon, string geocodeApiKey)
+    {
+        var weatherService = GetService<WeatherDataService>();
+        var locationingService = GetService<LocationingService>();
+
+        var weatherTask = weatherService.GetWeatherAsync(lat, lon);
+        var locationTask = locationingService.GetLocationNameAsync(lat, lon, geocodeApiKey);
+
+        await Task.WhenAll(weatherTask, locationTask);
+
+        if (weatherTask.Result?.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            using var doc = JsonDocument.Parse(await weatherTask.Result.Content.ReadAsStringAsync());
+            if (doc.RootElement.TryGetProperty("current", out var currentWeather))
+            {
+                if (currentWeather.TryGetProperty("temperature_2m", out var temp))
+                    CurrentTemperature = temp.GetDouble();
+                if (currentWeather.TryGetProperty("weather_code", out var code))
+                {
+                    WeatherDescription = code.GetInt32() switch
+                    {
+                        0 => "Sereno",
+                        1 or 2 or 3 => "Parzialmente nuvoloso",
+                        45 or 48 => "Nebbia",
+                        51 or 53 or 55 => "Pioviggine",
+                        56 or 57 => "Pioviggine congelata",
+                        61 or 63 or 65 => "Pioggia",
+                        66 or 67 => "Pioggia congelata",
+                        71 or 73 or 75 => "Neve",
+                        77 => "Grandine",
+                        80 or 81 or 82 => "Rovesci di pioggia",
+                        85 or 86 => "Rovesci di neve",
+                        _ => "Sconosciuto"
+                    };
+                }
+            }
+        }
+
+        var location = locationTask.Result;
+        Placement = location.HasValue ? location.Value : null;
     }
 
     private IconElement? GetSemiIcon(string key)
