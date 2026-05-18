@@ -122,7 +122,6 @@ public class ConfigurationService
 
         foreach (var line in File.ReadAllLines(SecretsFilePath))
         {
-            Console.WriteLine($"looping: {line}");
             var trimmed = line.Trim();
             var eqIndex = trimmed.IndexOf('=');
             if (eqIndex < 0) continue;
