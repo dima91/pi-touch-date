@@ -12,10 +12,11 @@ public class AppConfiguration : ReactiveObject
     // 2. Add a constructor parameter here         ← breaks Load() and DEFAULTS at compile time
     // 3. Add the field to ConfigurationDto        ← breaks Save() at compile time
     // 4. Add a Read() call in Load()              ← only runtime, but enforced by the above
-    public AppConfiguration(double? latitude, double? longitude)
+    public AppConfiguration(double? latitude, double? longitude, string? GeocodeApiKey)
     {
         _latitude = latitude;
         _longitude = longitude;
+        _geocodeApiKey = GeocodeApiKey;
     }
 
     private double? _latitude;
@@ -31,14 +32,22 @@ public class AppConfiguration : ReactiveObject
         get => _longitude;
         set => this.RaiseAndSetIfChanged(ref _longitude, value);
     }
+
+    private string? _geocodeApiKey;
+    public string? GeocodeApiKey
+    {
+        get => _geocodeApiKey;
+        set => this.RaiseAndSetIfChanged(ref _geocodeApiKey, value);
+    }
 }
 
 public class ConfigurationService
 {
     // Positional record: adding a field breaks the constructor call in Save() at compile time.
-    private record ConfigurationDto(double? Latitude, double? Longitude);
+    private record ConfigurationDto(double? Latitude, double? Longitude, string? GeocodeApiKey);
 
     private const string ConfigFileName = "config.json";
+    private const string SecretsFilePath = "/home/pi/.secrets.env";
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
@@ -47,9 +56,10 @@ public class ConfigurationService
     public AppConfiguration Configuration { get; private set; }
 
     // Instance property (not static field) so the compiler checks it against the constructor signature.
-    private AppConfiguration DEFAUTLS => new AppConfiguration(
+    private AppConfiguration DEFAUTLS() => new(
         latitude: null,
-        longitude: null
+        longitude: null,
+        GeocodeApiKey: LoadGeocodeApiKey()
     );
 
     public ConfigurationService(string? basePath = null)
@@ -63,10 +73,12 @@ public class ConfigurationService
 
     private AppConfiguration Load()
     {
+        var defaults = DEFAUTLS();
+
         if (!File.Exists(_configFilePath))
         {
             Console.WriteLine($"Configuration file not found, creating {_configFilePath}");
-            return Save(this.DEFAUTLS);
+            return Save(defaults);
         }
 
         try
@@ -77,13 +89,16 @@ public class ConfigurationService
 
             bool needsSave = false;
 
-            double? latitude = Read(root, nameof(AppConfiguration.Latitude), DEFAUTLS.Latitude,
+            double? latitude = Read(root, nameof(AppConfiguration.Latitude), defaults.Latitude,
                 el => el.GetDouble(), ref needsSave);
 
-            double? longitude = Read(root, nameof(AppConfiguration.Longitude), DEFAUTLS.Longitude,
+            double? longitude = Read(root, nameof(AppConfiguration.Longitude), defaults.Longitude,
                 el => el.GetDouble(), ref needsSave);
+            
+            string? geocodeApiKey = Read(root, nameof(AppConfiguration.GeocodeApiKey), defaults.GeocodeApiKey,
+                el => el.GetString(), ref needsSave);
 
-            var config = new AppConfiguration(latitude, longitude);
+            var config = new AppConfiguration(latitude, longitude, geocodeApiKey);
 
             if (needsSave)
                 Save(config);
@@ -93,8 +108,32 @@ public class ConfigurationService
         catch (Exception ex)
         {
             Console.WriteLine($"Error reading configuration: {ex.Message}");
-            return Save(this.DEFAUTLS);
+            return Save(defaults);
         }
+    }
+
+    private string? LoadGeocodeApiKey()
+    {
+        if (!File.Exists(SecretsFilePath))
+        {
+            Console.Error.WriteLine($"Error: secrets file not found at {SecretsFilePath}");
+            return null;
+        }
+
+        foreach (var line in File.ReadAllLines(SecretsFilePath))
+        {
+            Console.WriteLine($"looping: {line}");
+            var trimmed = line.Trim();
+            var eqIndex = trimmed.IndexOf('=');
+            if (eqIndex < 0) continue;
+
+            var key = trimmed[..eqIndex].Trim();
+            if (key == "GEOCODE_API_KEY")
+                return trimmed[(eqIndex + 1)..].Trim();
+        }
+
+        Console.Error.WriteLine("Error: GEOCODE_API_KEY not found in secrets file");
+        return null;
     }
 
     // Returns the parsed value if the key exists (even if null), or defaultValue if the key is absent.
@@ -117,7 +156,7 @@ public class ConfigurationService
         config ??= Configuration;
         try
         {
-            var dto = new ConfigurationDto(config.Latitude, config.Longitude);
+            var dto = new ConfigurationDto(config.Latitude, config.Longitude, config.GeocodeApiKey);
             File.WriteAllText(_configFilePath, JsonSerializer.Serialize(dto, JsonOptions));
         }
         catch (Exception ex)
