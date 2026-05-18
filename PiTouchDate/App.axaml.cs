@@ -32,7 +32,8 @@ public partial class App : Application
 
     private static void RegisterServices(IMutableDependencyResolver services)
     {
-        var configurationService = new ConfigurationService();
-        services.RegisterConstant<ConfigurationService>(configurationService);
+        services.RegisterConstant<ConfigurationService>(new ConfigurationService());
+        services.RegisterConstant<WeatherDataService>(new WeatherDataService());
+        services.RegisterConstant<LocationingService>(new LocationingService());
     }
 }
