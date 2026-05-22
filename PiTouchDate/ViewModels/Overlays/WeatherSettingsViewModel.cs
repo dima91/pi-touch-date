@@ -4,11 +4,23 @@ using System.Reactive;
 using ReactiveUI;
 using PiTouchDate.ViewModels;
 using PiTouchDate.Services;
+using static PiTouchDate.Services.WeatherDataService;
 
 namespace PiTouchDate.Overlays;
 
 public class WeatherSettingsViewModel : ViewModelBase
 {
+    private bool _weatherSettingsSelected = false;
+    public bool WeatherSettingsSelected
+    {
+        get => _weatherSettingsSelected;
+        set => this.RaiseAndSetIfChanged(ref _weatherSettingsSelected, value);
+    }
+
+    public double? CurrentTemperature { get; }
+    public string? WeatherDescription { get; }
+    public string? Placement { get; }
+
     private bool _isLatitudeActive = true;
     public bool IsLatitudeActive
     {
@@ -40,11 +52,19 @@ public class WeatherSettingsViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectLatitudeCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectLongitudeCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectWeatherInfoCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectWeatherSettingsCommand { get; }
 
     private readonly Action? _onSaved;
 
-    public WeatherSettingsViewModel(Action? onSaved = null)
+    public WeatherSettingsViewModel(
+        WeatherData? weatherData = null,
+        string? placement = null,
+        Action? onSaved = null)
     {
+        CurrentTemperature = weatherData?.Temperature;
+        WeatherDescription = weatherData?.Description;
+        Placement = placement;
         _onSaved = onSaved;
 
         var config = GetService<ConfigurationService>().Configuration;
@@ -64,6 +84,8 @@ public class WeatherSettingsViewModel : ViewModelBase
         SaveCommand = ReactiveCommand.Create(Save, canSave);
         SelectLatitudeCommand = ReactiveCommand.Create(() => { IsLatitudeActive = true; });
         SelectLongitudeCommand = ReactiveCommand.Create(() => { IsLatitudeActive = false; });
+        SelectWeatherInfoCommand = ReactiveCommand.Create(() => { WeatherSettingsSelected = false; });
+        SelectWeatherSettingsCommand = ReactiveCommand.Create(() => { WeatherSettingsSelected = true; });
     }
 
     private void OnKeyPress(string key)

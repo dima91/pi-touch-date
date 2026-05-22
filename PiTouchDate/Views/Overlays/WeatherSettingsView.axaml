@@ -9,72 +9,127 @@
              x:Class="PiTouchDate.Overlays.WeatherSettingsView"
              x:DataType="vm:WeatherSettingsViewModel">
 
-    <Grid RowDefinitions="Auto, Auto, *" Margin="0,4,0,0">
+    <Panel>
 
-        <!-- Coordinate field selectors -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, *">
+        <!-- Info view (default) -->
+        <Grid IsVisible="{Binding !WeatherSettingsSelected}">
 
-            <!-- Latitude -->
-            <Panel Grid.Column="0">
-                <controls:Card Command="{Binding SelectLatitudeCommand}"
-                               HorizontalContentAlignment="Stretch">
-                    <StackPanel Margin="4,2">
-                        <TextBlock Text="LATITUDINE" FontSize="10" FontWeight="Bold"
-                                   LetterSpacing="0.5" Opacity="0.5"/>
-                        <Panel Height="32" Margin="0,4,0,0">
-                            <TextBlock Text="{Binding LatitudeInput}" FontSize="22" FontWeight="SemiBold"
-                                       VerticalAlignment="Center"
-                                       IsVisible="{Binding LatitudeInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                            <TextBlock Text="es. 45.4642" FontSize="16" Opacity="0.3"
-                                       VerticalAlignment="Center"
-                                       IsVisible="{Binding LatitudeInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
-                        </Panel>
+            <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Background="Transparent" BorderThickness="0"
+                    Margin="0,4,4,0"
+                    Command="{Binding SelectWeatherSettingsCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock Text="Impostazioni" Opacity="0.6"/>
+                    <PathIcon Data="{DynamicResource SemiIconChevronRight}"
+                              Width="12" Height="12" Opacity="0.4" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+
+                <PathIcon Data="{DynamicResource SemiIconCloud}"
+                          Width="40" Height="40"
+                          Foreground="{DynamicResource SemiBlue4Color}"
+                          HorizontalAlignment="Center"/>
+
+                <Panel HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding CurrentTemperature, StringFormat='{}{0:F1} °C'}"
+                               FontSize="44" FontWeight="Bold"
+                               IsVisible="{Binding CurrentTemperature, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                    <TextBlock Text="-- °C" FontSize="44" FontWeight="Bold" Opacity="0.3"
+                               IsVisible="{Binding CurrentTemperature, Converter={x:Static ObjectConverters.IsNull}}"/>
+                </Panel>
+
+                <TextBlock FontSize="16" HorizontalAlignment="Center" Opacity="0.7"
+                           Text="{Binding WeatherDescription}"
+                           IsVisible="{Binding WeatherDescription, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                <TextBlock FontSize="12" HorizontalAlignment="Center" Opacity="0.4"
+                           Text="{Binding Placement}"
+                           IsVisible="{Binding Placement, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            </StackPanel>
+        </Grid>
+
+        <!-- Settings view -->
+        <Grid RowDefinitions="Auto, Auto, *" Margin="0,4,0,0"
+              IsVisible="{Binding WeatherSettingsSelected}">
+
+            <!-- Top bar: back + save -->
+            <Grid Grid.Row="0" ColumnDefinitions="*, *">
+                <Button Grid.Column="0" HorizontalAlignment="Left" Background="Transparent"
+                        Command="{Binding SelectWeatherInfoCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <PathIcon Data="{DynamicResource SemiIconChevronLeft}" Width="14" Height="14" Opacity="0.4"/>
+                        <TextBlock Text="Indietro"/>
                     </StackPanel>
-                </controls:Card>
-                <Border IsVisible="{Binding IsLatitudeActive}"
-                        BorderBrush="{DynamicResource SemiBlue4Color}"
-                        BorderThickness="2"
-                        CornerRadius="12"
-                        Margin="4"
-                        IsHitTestVisible="False"/>
-            </Panel>
+                </Button>
+                <Button Grid.Column="1" HorizontalAlignment="Right"
+                        Command="{Binding SaveCommand}">
+                    Salva
+                </Button>
+            </Grid>
 
-            <!-- Longitude -->
-            <Panel Grid.Column="1">
-                <controls:Card Command="{Binding SelectLongitudeCommand}"
-                               HorizontalContentAlignment="Stretch">
-                    <StackPanel Margin="4,2">
-                        <TextBlock Text="LONGITUDINE" FontSize="10" FontWeight="Bold"
-                                   LetterSpacing="0.5" Opacity="0.5"/>
-                        <Panel Height="32" Margin="0,4,0,0">
-                            <TextBlock Text="{Binding LongitudeInput}" FontSize="22" FontWeight="SemiBold"
-                                       VerticalAlignment="Center"
-                                       IsVisible="{Binding LongitudeInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                            <TextBlock Text="es. 9.1900" FontSize="16" Opacity="0.3"
-                                       VerticalAlignment="Center"
-                                       IsVisible="{Binding LongitudeInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
-                        </Panel>
-                    </StackPanel>
-                </controls:Card>
-                <Border IsVisible="{Binding IsLongitudeActive}"
-                        BorderBrush="{DynamicResource SemiBlue4Color}"
-                        BorderThickness="2"
-                        CornerRadius="12"
-                        Margin="4"
-                        IsHitTestVisible="False"/>
-            </Panel>
+            <!-- Coordinate field selectors -->
+            <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,6,0,0">
+
+                <!-- Latitude -->
+                <Panel Grid.Column="0">
+                    <controls:Card Command="{Binding SelectLatitudeCommand}"
+                                   HorizontalContentAlignment="Stretch">
+                        <StackPanel Margin="4,2">
+                            <TextBlock Text="LATITUDINE" FontSize="10" FontWeight="Bold"
+                                       LetterSpacing="0.5" Opacity="0.5"/>
+                            <Panel Height="32" Margin="0,4,0,0">
+                                <TextBlock Text="{Binding LatitudeInput}" FontSize="22" FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding LatitudeInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <TextBlock Text="es. 45.4642" FontSize="16" Opacity="0.3"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding LatitudeInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                            </Panel>
+                        </StackPanel>
+                    </controls:Card>
+                    <Border IsVisible="{Binding IsLatitudeActive}"
+                            BorderBrush="{DynamicResource SemiBlue4Color}"
+                            BorderThickness="2"
+                            CornerRadius="12"
+                            Margin="4"
+                            IsHitTestVisible="False"/>
+                </Panel>
+
+                <!-- Longitude -->
+                <Panel Grid.Column="1">
+                    <controls:Card Command="{Binding SelectLongitudeCommand}"
+                                   HorizontalContentAlignment="Stretch">
+                        <StackPanel Margin="4,2">
+                            <TextBlock Text="LONGITUDINE" FontSize="10" FontWeight="Bold"
+                                       LetterSpacing="0.5" Opacity="0.5"/>
+                            <Panel Height="32" Margin="0,4,0,0">
+                                <TextBlock Text="{Binding LongitudeInput}" FontSize="22" FontWeight="SemiBold"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding LongitudeInput, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <TextBlock Text="es. 9.1900" FontSize="16" Opacity="0.3"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding LongitudeInput, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                            </Panel>
+                        </StackPanel>
+                    </controls:Card>
+                    <Border IsVisible="{Binding IsLongitudeActive}"
+                            BorderBrush="{DynamicResource SemiBlue4Color}"
+                            BorderThickness="2"
+                            CornerRadius="12"
+                            Margin="4"
+                            IsHitTestVisible="False"/>
+                </Panel>
+
+            </Grid>
+
+            <!-- Screen keyboard -->
+            <controls:ScreenKeyboard Grid.Row="2" Margin="0,8,0,0"
+                                     KeyPressCommand="{Binding KeyPressCommand}"/>
 
         </Grid>
 
-        <!-- Save button -->
-        <Button Grid.Row="1" HorizontalAlignment="Stretch" Margin="4,6,4,0"
-                Command="{Binding SaveCommand}">
-            Salva
-        </Button>
-
-        <!-- Screen keyboard -->
-        <controls:ScreenKeyboard Grid.Row="2" Margin="0,8,0,0"
-                                 KeyPressCommand="{Binding KeyPressCommand}"/>
-
-    </Grid>
+    </Panel>
 </UserControl>
