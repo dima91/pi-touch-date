@@ -10,7 +10,6 @@
         x:Class="PiTouchDate.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Background="{DynamicResource Black}"
-        Icon="/Assets/avalonia-logo.ico"
         Title="PiTouchDate"
         WindowDecorations="None"
         Width="780" Height="460">

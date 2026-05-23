@@ -129,7 +129,6 @@ public class MainWindowViewModel : ViewModelBase
     private void _ReloadShownInfo(bool forceUpdate = false)
     {
         var now = DateTime.Now;
-        Console.WriteLine($"Fired at {DateTime.Now:HH:mm:ss}");
 
         try {
             if (forceUpdate || _previousDT.Date != now.Date)
