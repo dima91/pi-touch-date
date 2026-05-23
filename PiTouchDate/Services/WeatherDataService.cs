@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 
 public class WeatherDataService
 {
@@ -35,6 +36,37 @@ public class WeatherDataService
             _               => "Sconosciuto"
         };
 
+        public static Bitmap? GetWeatherCodeIcon(int weatherCode)
+        {
+            var filename = weatherCode switch
+            {
+                0 or 1          => "sun.png",
+                2               => "cloudy.png",
+                3               => "clouds.png",
+                45 or 48        => "fog.png",
+                51 or 53 or 55  => "light-rain.png",
+                56 or 57        => "freezing-rain.png",
+                61 or 63        => "rain.png",
+                65              => "heavy-rain.png",
+                66 or 67        => "freezing-rain.png",
+                71 or 73        => "snow.png",
+                75              => "heavy-snow.png",
+                77              => "snow.png",
+                80 or 81        => "rain.png",
+                82              => "heavy-rain.png",
+                85              => "snow.png",
+                86              => "heavy-snow.png",
+                95 or 96 or 99  => "thunder.png",
+                _               => null
+            };
+
+            if (filename is null)
+                return null;
+            using var stream = typeof(WeatherData).Assembly
+                .GetManifestResourceStream($"PiTouchDate.Assets.{filename}");
+            return new Bitmap(stream!);
+        }
+
         public double CurrentTemperature { get; init; }
         public double? MaxTemperature { get; init; }
         public double? MinTemperature { get; init; }
@@ -42,6 +74,8 @@ public class WeatherDataService
         public bool IsDay { get; init; }
         public Dictionary<DateTime, HourlyInfo> HourlyInfo { get; init; } = new();
 
+        public Bitmap? WeatherIcon => GetWeatherCodeIcon(WeatherCode);
+        public bool HasWeatherIcon => WeatherIcon != null;
         public string Description => GetWeatherCodeDescription(WeatherCode);
     }
 

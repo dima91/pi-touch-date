@@ -7,6 +7,7 @@ using PiTouchDate.Services;
 using static PiTouchDate.Services.WeatherDataService;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia.Media.Imaging;
 
 namespace PiTouchDate.Overlays;
 
@@ -19,6 +20,9 @@ public class WeatherSettingsViewModel : ViewModelBase
         public required string TargetDayPeriod { get; init; }
         public double AverageTemperature { get; init; }
         public int AverageWeatherCode { get; init; }
+
+        public Bitmap? WeatherIcon => WeatherData.GetWeatherCodeIcon(AverageWeatherCode);
+        public bool HasWeatherIcon => WeatherIcon != null;
     }
 
 
