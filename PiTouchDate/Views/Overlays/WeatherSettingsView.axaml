@@ -4,19 +4,24 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:PiTouchDate.Overlays"
              xmlns:controls="using:PiTouchDate.Controls"
+             xmlns:utils="using:PiTouchDate.Utils.Converters"
              mc:Ignorable="d"
              Width="680" Height="340"
              x:Class="PiTouchDate.Overlays.WeatherSettingsView"
              x:DataType="vm:WeatherSettingsViewModel">
 
+    <UserControl.Resources>
+        <utils:NullToDoubleDashConverter x:Key="NullToDoubleDash"/>
+    </UserControl.Resources>
+
     <Panel>
 
         <!-- Info view (default) -->
-        <Grid IsVisible="{Binding !WeatherSettingsSelected}">
+        <Grid IsVisible="{Binding !WeatherSettingsSelected}" RowDefinitions="Auto,*">
 
             <Button HorizontalAlignment="Right" VerticalAlignment="Top"
                     Background="Transparent" BorderThickness="0"
-                    Margin="0,4,4,0"
+                    Margin="0,4,4,0" Grid.Row="0"
                     Command="{Binding SelectWeatherSettingsCommand}">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock Text="Impostazioni" Opacity="0.6"/>
@@ -25,30 +30,68 @@
                 </StackPanel>
             </Button>
 
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10">
+            <Grid Grid.Row="1" RowDefinitions="Auto,*" HorizontalAlignment="Stretch">
 
-                <PathIcon Data="{DynamicResource SemiIconCloud}"
-                          Width="40" Height="40"
-                          Foreground="{DynamicResource SemiBlue4Color}"
-                          HorizontalAlignment="Center"/>
+                <controls:Card Grid.Row="0" HorizontalContentAlignment="Stretch">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <PathIcon Grid.Column="0"
+                                  Data="{DynamicResource SemiIconCloud}" 
+                                  Width="56" Height="56"
+                                  Foreground="{DynamicResource SemiBlue4Color}"
+                                  VerticalAlignment="Center"/>
+                        
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0">
+                            <TextBlock Text="{Binding CurrentTemperature, Converter={StaticResource NullToDoubleDash}, StringFormat='{}{0} °C'}" FontSize="32" FontWeight="Bold"/>
+                            <StackPanel Orientation="Horizontal" Opacity="0.7">
+                                <TextBlock Text="{Binding Placement, Converter={StaticResource NullToDoubleDash}}" FontSize="18"/>
+                                <TextBlock Text=" : " FontSize="18"/>
+                                <TextBlock Text="{Binding WeatherDescription, Converter={StaticResource NullToDoubleDash}}" FontSize="18"/>
+                            </StackPanel>
+                        </StackPanel>
 
-                <Panel HorizontalAlignment="Center">
-                    <TextBlock Text="{Binding CurrentTemperature, StringFormat='{}{0:F1} °C'}"
-                               FontSize="44" FontWeight="Bold"
-                               IsVisible="{Binding CurrentTemperature, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                    <TextBlock Text="-- °C" FontSize="44" FontWeight="Bold" Opacity="0.3"
-                               IsVisible="{Binding CurrentTemperature, Converter={x:Static ObjectConverters.IsNull}}"/>
-                </Panel>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="5">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <PathIcon Data="{DynamicResource SemiIconArrowUp}" Width="15" Height="15"
+                                          Foreground="{DynamicResource SemiRed5Color}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding WeatherData.MaxTemperature, Converter={StaticResource NullToDoubleDash}, StringFormat='{}{0} °C'}"
+                                           FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource SemiRed5Color}"/>
+                            </StackPanel>
+                            
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <PathIcon Data="{DynamicResource SemiIconArrowDown}" Width="15" Height="15"
+                                            Foreground="{DynamicResource SemiBlue4Color}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding WeatherData.MinTemperature, Converter={StaticResource NullToDoubleDash}, StringFormat='{}{0} °C'}"
+                                        FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource SemiBlue4Color}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </controls:Card>
 
-                <TextBlock FontSize="16" HorizontalAlignment="Center" Opacity="0.7"
-                           Text="{Binding WeatherDescription}"
-                           IsVisible="{Binding WeatherDescription, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding WeatherInfoDayPeriods}" Margin="0,10,0,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="1"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <controls:Card HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                                <Grid RowDefinitions="Auto,*,Auto">
+                                    <TextBlock Grid.Row="0" Text="{Binding TargetDayPeriod, Converter={StaticResource NullToDoubleDash}}"
+                                        FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource SemiBlue4Color}" HorizontalAlignment="Center"/>
 
-                <TextBlock FontSize="12" HorizontalAlignment="Center" Opacity="0.4"
-                           Text="{Binding Placement}"
-                           IsVisible="{Binding Placement, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <PathIcon Grid.Row="1" Data="{DynamicResource SemiIconCloud}" Margin="0,20,0,20"
+                                            Foreground="{DynamicResource SemiBlue4Color}" VerticalAlignment="Stretch"/>
 
-            </StackPanel>
+                                    <TextBlock Grid.Row="2" Text="{Binding AverageTemperature, Converter={StaticResource NullToDoubleDash}, StringFormat='{}{0:F1} °C'}"
+                                        FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource SemiWhiteColor}" HorizontalAlignment="Center"/>
+                                </Grid>
+                            </controls:Card>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </Grid>
         </Grid>
 
         <!-- Settings view -->

@@ -189,7 +189,7 @@ public class MainWindowViewModel : ViewModelBase
         
         if (CurrentWeatherData != null)
         {
-            CurrentTemperature = CurrentWeatherData.Temperature;
+            CurrentTemperature = CurrentWeatherData.CurrentTemperature;
             WeatherDescription = CurrentWeatherData.Description;
         }
         else

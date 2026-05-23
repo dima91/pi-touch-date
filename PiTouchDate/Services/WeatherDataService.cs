@@ -1,38 +1,48 @@
 namespace PiTouchDate.Services;
 
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 public class WeatherDataService
 {
-    public class WeatherData
+    public class HourlyInfo
     {
         public double Temperature { get; init; }
+        public int WeatherCode { get; init; }
+    }
+
+    public class WeatherData
+    {
+        public static string GetWeatherCodeDescription(int weatherCode) => weatherCode switch
+        {
+            0 or 1          => "Sereno",
+            2               => "Parzialmente nuvoloso",
+            3               => "Nuvoloso",
+            45 or 48        => "Nebbia",
+            51 or 53 or 55  => "Pioviggine",
+            56 or 57        => "Pioviggine congelata",
+            61 or 63 or 65  => "Pioggia",
+            66 or 67        => "Pioggia congelata",
+            71 or 73 or 75  => "Neve",
+            77              => "Grandine",
+            80 or 81 or 82  => "Rovesci di pioggia",
+            85 or 86        => "Rovesci di neve",
+            95              => "Temporale",
+            96 or 99        => "Temporale con grandine",
+            _               => "Sconosciuto"
+        };
+
+        public double CurrentTemperature { get; init; }
         public double? MaxTemperature { get; init; }
         public double? MinTemperature { get; init; }
         public int WeatherCode { get; init; }
         public bool IsDay { get; init; }
+        public Dictionary<DateTime, HourlyInfo> HourlyInfo { get; init; } = new();
 
-        public string Description => WeatherCode switch
-        {
-            0 or 1        => "Sereno",
-            2             => "Parzialmente nuvoloso",
-            3             => "Nuvoloso",
-            45 or 48      => "Nebbia",
-            51 or 53 or 55 => "Pioviggine",
-            56 or 57      => "Pioviggine congelata",
-            61 or 63 or 65 => "Pioggia",
-            66 or 67      => "Pioggia congelata",
-            71 or 73 or 75 => "Neve",
-            77            => "Grandine",
-            80 or 81 or 82 => "Rovesci di pioggia",
-            85 or 86      => "Rovesci di neve",
-            95            => "Temporale",
-            96 or 99      => "Temporale con grandine",
-            _             => "Sconosciuto"
-        };
+        public string Description => GetWeatherCodeDescription(WeatherCode);
     }
 
 
@@ -40,6 +50,7 @@ public class WeatherDataService
     private const string BaseUrl =
         "https://api.open-meteo.com/v1/forecast" +
         "?current=weather_code,temperature_2m,is_day" +
+        "&hourly=temperature_2m,weather_code" +
         "&daily=temperature_2m_max,temperature_2m_min" +
         "&timezone=auto&forecast_days=1";
 
@@ -66,6 +77,7 @@ public class WeatherDataService
             bool isDay = true;
             double? maxTemp = null;
             double? minTemp = null;
+            var hourlyInfo = new Dictionary<DateTime, HourlyInfo>();
 
             if (root.TryGetProperty("current", out var current))
             {
@@ -85,13 +97,35 @@ public class WeatherDataService
                     minTemp = minArr[0].GetDouble();
             }
 
+            if (root.TryGetProperty("hourly", out var hourly))
+            {
+                if (hourly.TryGetProperty("time", out var times) &&
+                    hourly.TryGetProperty("temperature_2m", out var temps) &&
+                    hourly.TryGetProperty("weather_code", out var codes))
+                {
+                    for (int i = 0; i < times.GetArrayLength(); i++)
+                    {
+                        if (DateTime.TryParse(times[i].GetString(), out var time))
+                        {
+                            hourlyInfo[time] = new HourlyInfo
+                            {
+                                Temperature = temps[i].GetDouble(),
+                                WeatherCode = codes[i].GetInt32()
+                            };
+                        }
+                    }
+                }
+                
+            }
+
             return new WeatherData
             {
-                Temperature = temperature,
+                CurrentTemperature = temperature,
                 WeatherCode = weatherCode,
                 IsDay = isDay,
                 MaxTemperature = maxTemp,
-                MinTemperature = minTemp
+                MinTemperature = minTemp,
+                HourlyInfo = hourlyInfo
             };
         }
         catch (Exception ex)
