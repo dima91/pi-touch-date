@@ -10,6 +10,10 @@ using Avalonia;
 using Avalonia.Media;
 using PiTouchDate.Services;
 using static PiTouchDate.Services.WeatherDataService;
+using PiTouchDate.Utils;
+using Avalonia.Platform;
+using System.IO.Compression;
+using System.IO;
 
 namespace PiTouchDate.ViewModels;
 
@@ -17,6 +21,7 @@ public class MainWindowViewModel : ViewModelBase
 {
     private DateTime _previousDT;
     private const int _MINUTES_DELAY_TIMER = 1;
+    private const string BACKLIGHT_FILE_PATH = "/sys/devices/platform/soc/3f205000.i2c/i2c-11/i2c-10/10-0045/backlight/10-0045/brightness";
 
     private string _weekDay = "";
     public string WeekDay
@@ -46,6 +51,19 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _calendarSelectedDate, value);
     }
 
+    private ScreenMode _selectedScreenMode = ScreenMode.Day;
+    public ScreenMode SelectedScreenMode
+    {
+        get => _selectedScreenMode;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedScreenMode, value);
+            this.RaisePropertyChanged(nameof(IsDayMode));
+        }
+    }
+
+    public bool IsDayMode => _selectedScreenMode == ScreenMode.Day;
+    
     private int _screenBrightness = 255;
     public int ScreenBrightness
     {
@@ -123,6 +141,29 @@ public class MainWindowViewModel : ViewModelBase
         Observable.Timer(delay, TimeSpan.FromMinutes(1))
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => _ReloadShownInfo());
+
+        this.WhenAnyValue(x => x.SelectedScreenMode)
+        .Subscribe (mode =>
+        {
+            ScreenBrightness = mode == ScreenMode.Day ? 255 : 40;
+        });
+
+        this.WhenAnyValue(x => x.ScreenBrightness)
+        .Subscribe(
+            brightness => {
+                try
+                {
+                    if (File.Exists(BACKLIGHT_FILE_PATH))
+                        File.WriteAllText(BACKLIGHT_FILE_PATH, brightness.ToString());
+                    else
+                        Console.Error.WriteLine("Cannot update brightness");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error setting screen brightness: {ex.Message}");
+                }
+            }
+        );
     }
 
 
@@ -210,13 +251,9 @@ public class MainWindowViewModel : ViewModelBase
         return null;
     }
 
-    public void OnBrightnessCardClicked()
+    public void OnScreenModeCardClicked()
     {
-        // Not yet implemented overlay
-        CurrentOverlayTitle = "Luminosità";
-        CurrentOverlayIcon = GetSemiIcon("SemiIconSun");
-        CurrentOverlay = null;
-        IsOverlayVisible = true;
+        SelectedScreenMode = SelectedScreenMode == ScreenMode.Day ? ScreenMode.Night : ScreenMode.Day;
     }
 
 

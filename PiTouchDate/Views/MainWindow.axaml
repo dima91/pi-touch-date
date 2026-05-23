@@ -79,8 +79,11 @@
                 </controls:Card>
 
                 <Grid Grid.Row="2" ColumnDefinitions="*,*,*">
-                    <controls:Card Grid.Column="0" Command="{Binding OnBrightnessCardClicked}" Height="70">
-                        <PathIcon Data="{DynamicResource SemiIconSun}" Foreground="{DynamicResource SemiYellow5Color}"/>
+                    <controls:Card Grid.Column="0" Command="{Binding OnScreenModeCardClicked}" Height="70">
+                        <Panel>
+                            <PathIcon Data="{DynamicResource SemiIconMoon}" Foreground="{DynamicResource SemiBlue5Color}" IsVisible="{Binding IsDayMode}"/>
+                            <PathIcon Data="{DynamicResource SemiIconSun}" Foreground="{DynamicResource SemiYellow5Color}" IsVisible="{Binding !IsDayMode}"/>
+                        </Panel>
                     </controls:Card>
                     
                     <controls:Card Grid.Column="1" Command="{Binding OnWifiCardClicked}" Height="70">
