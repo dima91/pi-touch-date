@@ -12,11 +12,14 @@ public class AppConfiguration : ReactiveObject
     // 2. Add a constructor parameter here         ← breaks Load() and DEFAULTS at compile time
     // 3. Add the field to ConfigurationDto        ← breaks Save() at compile time
     // 4. Add a Read() call in Load()              ← only runtime, but enforced by the above
-    public AppConfiguration(double? latitude, double? longitude, string? GeocodeApiKey)
+    public AppConfiguration(double? latitude, double? longitude, string? GeocodeApiKey, bool autoNightMode, int dayBrightness, int nightBrightness)
     {
         _latitude = latitude;
         _longitude = longitude;
         _geocodeApiKey = GeocodeApiKey;
+        _autoNightMode = autoNightMode;
+        _dayBrightness = dayBrightness;
+        _nightBrightness = nightBrightness;
     }
 
     private double? _latitude;
@@ -39,12 +42,33 @@ public class AppConfiguration : ReactiveObject
         get => _geocodeApiKey;
         set => this.RaiseAndSetIfChanged(ref _geocodeApiKey, value);
     }
+
+    private bool _autoNightMode;
+    public bool AutoNightMode
+    {
+        get => _autoNightMode;
+        set => this.RaiseAndSetIfChanged(ref _autoNightMode, value);
+    }
+
+    private int _dayBrightness;
+    public int DayBrightness
+    {
+        get => _dayBrightness;
+        set => this.RaiseAndSetIfChanged(ref _dayBrightness, value);
+    }
+
+    private int _nightBrightness;
+    public int NightBrightness
+    {
+        get => _nightBrightness;
+        set => this.RaiseAndSetIfChanged(ref _nightBrightness, value);
+    }
 }
 
 public class ConfigurationService
 {
     // Positional record: adding a field breaks the constructor call in Save() at compile time.
-    private record ConfigurationDto(double? Latitude, double? Longitude, string? GeocodeApiKey);
+    private record ConfigurationDto(double? Latitude, double? Longitude, string? GeocodeApiKey, bool AutoNightMode, int DayBrightness, int NightBrightness);
 
     private const string ConfigFileName = "config.json";
     private const string SecretsFilePath = "/home/pi/.secrets.env";
@@ -59,7 +83,10 @@ public class ConfigurationService
     private AppConfiguration DEFAUTLS() => new(
         latitude: null,
         longitude: null,
-        GeocodeApiKey: LoadGeocodeApiKey()
+        GeocodeApiKey: LoadGeocodeApiKey(),
+        autoNightMode: false,
+        dayBrightness: 255,
+        nightBrightness: 40
     );
 
     public ConfigurationService(string? basePath = null)
@@ -98,7 +125,16 @@ public class ConfigurationService
             string? geocodeApiKey = Read(root, nameof(AppConfiguration.GeocodeApiKey), defaults.GeocodeApiKey,
                 el => el.GetString(), ref needsSave);
 
-            var config = new AppConfiguration(latitude, longitude, geocodeApiKey);
+            bool autoNightMode = Read(root, nameof(AppConfiguration.AutoNightMode), defaults.AutoNightMode,
+                el => el.GetBoolean(), ref needsSave);
+
+            int dayBrightness = Read(root, nameof(AppConfiguration.DayBrightness), defaults.DayBrightness,
+                el => el.GetInt32(), ref needsSave);
+
+            int nightBrightness = Read(root, nameof(AppConfiguration.NightBrightness), defaults.NightBrightness,
+                el => el.GetInt32(), ref needsSave);
+
+            var config = new AppConfiguration(latitude, longitude, geocodeApiKey, autoNightMode, dayBrightness, nightBrightness);
 
             if (needsSave)
                 Save(config);
@@ -155,7 +191,7 @@ public class ConfigurationService
         config ??= Configuration;
         try
         {
-            var dto = new ConfigurationDto(config.Latitude, config.Longitude, config.GeocodeApiKey);
+            var dto = new ConfigurationDto(config.Latitude, config.Longitude, config.GeocodeApiKey, config.AutoNightMode, config.DayBrightness, config.NightBrightness);
             File.WriteAllText(_configFilePath, JsonSerializer.Serialize(dto, JsonOptions));
         }
         catch (Exception ex)
