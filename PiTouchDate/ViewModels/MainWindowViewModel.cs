@@ -273,12 +273,14 @@ public class MainWindowViewModel : ViewModelBase
     }
 
 
-    public void OnPowerCardClicked()
+    public void OnAppSettingsCardClicked()
     {
-        // Not yet implemented overlay
-        CurrentOverlayTitle = "Azioni di sistema";
-        CurrentOverlayIcon = GetSemiIcon("SemiIconPoweroff");
-        CurrentOverlay = null;
+        CurrentOverlayTitle = "Impostazioni";
+        CurrentOverlayIcon = GetSemiIcon("SemiIconSetting");
+        CurrentOverlay = new AppSettingsOverlayViewModel(
+            screenBrightness: ScreenBrightness,
+            onBrightnessChanged: value => ScreenBrightness = value);
+
         IsOverlayVisible = true;
     }
 

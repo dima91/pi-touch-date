@@ -90,8 +90,8 @@
                         <PathIcon Data="{DynamicResource SemiIconWifi}" Foreground="{DynamicResource SemiBlue3Color}" />
                     </controls:Card>
                     
-                    <controls:Card Grid.Column="2" Command="{Binding OnPowerCardClicked}" Height="70">
-                        <PathIcon Data="{DynamicResource SemiIconPoweroff}" Foreground="{DynamicResource SemiRed3Color}" />
+                    <controls:Card Grid.Column="2" Command="{Binding OnAppSettingsCardClicked}" Height="70">
+                        <PathIcon Data="{DynamicResource SemiIconSetting}" Foreground="{DynamicResource SemiGreen4}" />
                     </controls:Card>
                 </Grid>
             </Grid>
