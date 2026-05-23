@@ -142,11 +142,13 @@ public class MainWindowViewModel : ViewModelBase
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => _ReloadShownInfo());
 
-        this.WhenAnyValue(x => x.SelectedScreenMode)
-        .Subscribe (mode =>
-        {
-            ScreenBrightness = mode == ScreenMode.Day ? 255 : 40;
-        });
+        var config = GetService<ConfigurationService>().Configuration;
+        Observable.CombineLatest(
+            this.WhenAnyValue(x => x.SelectedScreenMode),
+            config.WhenAnyValue(x => x.DayBrightness),
+            config.WhenAnyValue(x => x.NightBrightness),
+            (mode, day, night) => mode == ScreenMode.Day ? day : night)
+            .Subscribe(b => ScreenBrightness = b);
 
         this.WhenAnyValue(x => x.ScreenBrightness)
         .Subscribe(
@@ -211,6 +213,11 @@ public class MainWindowViewModel : ViewModelBase
 
         CurrentTime = now.ToString("HH:mm");
 
+        if (GetService<ConfigurationService>().Configuration.AutoNightMode)
+        {
+            bool isNightHour = now.Hour >= 22 || now.Hour < 7;
+            SelectedScreenMode = isNightHour ? ScreenMode.Night : ScreenMode.Day;
+        }
 
         _previousDT = now;
     }
