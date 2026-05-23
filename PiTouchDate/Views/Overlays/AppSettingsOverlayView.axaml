@@ -1,0 +1,111 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:PiTouchDate.Overlays"
+             xmlns:controls="using:PiTouchDate.Controls"
+             mc:Ignorable="d"
+             Width="680" Height="340"
+             x:Class="PiTouchDate.Overlays.AppSettingsOverlayView"
+             x:DataType="vm:AppSettingsOverlayViewModel">
+
+    <Grid RowDefinitions="*,Auto,Auto" Margin="0,8,0,0">
+
+        <!-- Scrollable settings -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <controls:Card HorizontalContentAlignment="Stretch">
+                    <StackPanel Margin="8,4" Spacing="12">
+
+                        <!-- Brightness slider -->
+                        <TextBlock Text="LUMINOSITÀ ATTUALE" FontSize="10" FontWeight="Bold" LetterSpacing="0.5" Opacity="0.5"/>
+                        <Grid ColumnDefinitions="Auto, *, Auto" VerticalAlignment="Center">
+                            <PathIcon Grid.Column="0" Data="{DynamicResource SemiIconMoon}"
+                                      Width="20" Height="20" Opacity="0.6"/>
+                            <Slider Grid.Column="1" Margin="12,0"
+                                    Minimum="10" Maximum="255" TickFrequency="1" IsSnapToTickEnabled="True"
+                                    Value="{Binding ScreenBrightness, Mode=TwoWay}"/>
+                            <PathIcon Grid.Column="2" Data="{DynamicResource SemiIconSun}"
+                                      Width="20" Height="20" Foreground="{DynamicResource SemiYellow5Color}"/>
+                        </Grid>
+
+                        <!-- Separator -->
+                        <Border Height="1" Background="{DynamicResource SemiGrey2Color}" Margin="0,4"/>
+
+                        <!-- Auto night mode toggle -->
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="MODALITÀ NOTTE AUTOMATICA" FontSize="10" FontWeight="Bold"
+                                           LetterSpacing="0.5" Opacity="0.5"/>
+                                <TextBlock Text="Passa alla modalità notte tra le 22:00 e le 7:00"
+                                           FontSize="11" Opacity="0.4" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                          IsChecked="{Binding IsAutoNightModeEnabled, Mode=TwoWay}"
+                                          OnContent="" OffContent=""/>
+                        </Grid>
+
+                        <!-- Day / Night brightness presets -->
+                        <StackPanel>
+                            <TextBlock Text="Luminosità modalità giorno"
+                                           FontSize="11" Opacity="0.4" Margin="0,10,0,4"/>
+                            <Grid ColumnDefinitions="Auto, *" VerticalAlignment="Center">
+                                <PathIcon Grid.Column="0" Data="{DynamicResource SemiIconSun}"
+                                            Width="16" Height="16" Foreground="{DynamicResource SemiYellow5Color}"
+                                            VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Margin="12,0"
+                                        Minimum="10" Maximum="255" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        Value="{Binding DayBrightness, Mode=TwoWay}"/>
+                            </Grid>
+                            <TextBlock Text="Luminosità modalità notte"
+                                           FontSize="11" Opacity="0.4" Margin="0,10,0,4"/>
+                            <Grid ColumnDefinitions="Auto, *" VerticalAlignment="Center">
+                                <PathIcon Grid.Column="0" Data="{DynamicResource SemiIconMoon}"
+                                            Width="16" Height="16" Opacity="0.6"
+                                            VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Margin="12,0"
+                                        Minimum="10" Maximum="255" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        Value="{Binding NightBrightness, Mode=TwoWay}"/>
+                            </Grid>
+                        </StackPanel>
+
+                    </StackPanel>
+                </controls:Card>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Software Version -->
+        <TextBlock Grid.Row="1"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Opacity="0.35" FontSize="12"
+                   Text="{Binding SoftwareVersion, StringFormat='v{0}'}"/>
+
+        <!-- System actions -->
+        <Grid Grid.Row="2" ColumnDefinitions="*, *">
+            <controls:Card Grid.Column="0" Command="{Binding RestartCommand}"
+                           HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                    <PathIcon Data="{DynamicResource SemiIconRefresh}"
+                              Height="20" Foreground="{DynamicResource SemiBlue4Color}"
+                              HorizontalAlignment="Center"/>
+                    <TextBlock Text="Riavvia" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource SemiBlue4Color}" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </controls:Card>
+
+            <controls:Card Grid.Column="1" Command="{Binding ShutdownCommand}"
+                           HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                    <PathIcon Data="{DynamicResource SemiIconPoweroff}"
+                              Height="20" Foreground="{DynamicResource SemiRed4Color}"
+                              HorizontalAlignment="Center"/>
+                    <TextBlock Text="Arresta" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource SemiRed4Color}" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </controls:Card>
+        </Grid>
+
+    </Grid>
+</UserControl>
