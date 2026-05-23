@@ -3,13 +3,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Reactive.Linq;
 using ReactiveUI;
-using Avalonia.Interactivity;
 using PiTouchDate.Controls;
 using PiTouchDate.Overlays;
 using Avalonia.Controls;
 using Avalonia;
 using Avalonia.Media;
 using PiTouchDate.Services;
+using static PiTouchDate.Services.WeatherDataService;
 
 namespace PiTouchDate.ViewModels;
 
@@ -54,18 +54,18 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     // ===============   Weather properties   ===============
+    private WeatherData? _currentWeatherData = null;
+    public WeatherData? CurrentWeatherData
+    {
+        get => _currentWeatherData;
+        set => this.RaiseAndSetIfChanged(ref _currentWeatherData, value);
+    }
+
     private double? _currentTemperature = null;
     public double? CurrentTemperature
     {
         get => _currentTemperature;
         set => this.RaiseAndSetIfChanged(ref _currentTemperature, value);
-    }
-
-    private string? _placement = null;
-    public string? Placement
-    {
-        get => _placement;
-        set => this.RaiseAndSetIfChanged(ref _placement, value);
     }
 
     private string? _weatherDescription = null;
@@ -74,7 +74,13 @@ public class MainWindowViewModel : ViewModelBase
         get => _weatherDescription;
         set => this.RaiseAndSetIfChanged(ref _weatherDescription, value);
     }
-    
+
+    private string? _placement = null;
+    public string? Placement
+    {
+        get => _placement;
+        set => this.RaiseAndSetIfChanged(ref _placement, value);
+    }
 
     // ===============   Overlay properties   ===============
     private bool _isOverlayVisible = false;
@@ -179,32 +185,17 @@ public class MainWindowViewModel : ViewModelBase
 
         await Task.WhenAll(weatherTask, locationTask);
 
-        if (weatherTask.Result?.StatusCode == System.Net.HttpStatusCode.OK)
+        CurrentWeatherData = weatherTask.Result;
+        
+        if (CurrentWeatherData != null)
         {
-            using var doc = JsonDocument.Parse(await weatherTask.Result.Content.ReadAsStringAsync());
-            if (doc.RootElement.TryGetProperty("current", out var currentWeather))
-            {
-                if (currentWeather.TryGetProperty("temperature_2m", out var temp))
-                    CurrentTemperature = temp.GetDouble();
-                if (currentWeather.TryGetProperty("weather_code", out var code))
-                {
-                    WeatherDescription = code.GetInt32() switch
-                    {
-                        0 => "Sereno",
-                        1 or 2 or 3 => "Parzialmente nuvoloso",
-                        45 or 48 => "Nebbia",
-                        51 or 53 or 55 => "Pioviggine",
-                        56 or 57 => "Pioviggine congelata",
-                        61 or 63 or 65 => "Pioggia",
-                        66 or 67 => "Pioggia congelata",
-                        71 or 73 or 75 => "Neve",
-                        77 => "Grandine",
-                        80 or 81 or 82 => "Rovesci di pioggia",
-                        85 or 86 => "Rovesci di neve",
-                        _ => "Sconosciuto"
-                    };
-                }
-            }
+            CurrentTemperature = CurrentWeatherData.CurrentTemperature;
+            WeatherDescription = CurrentWeatherData.Description;
+        }
+        else
+        {
+            CurrentTemperature = null;
+            WeatherDescription = null;
         }
 
         var location = locationTask.Result;
@@ -253,13 +244,14 @@ public class MainWindowViewModel : ViewModelBase
     {
         CurrentOverlayTitle = "Meteo";
         CurrentOverlayIcon = GetSemiIcon("SemiIconCloud");
-        CurrentOverlay = new WeatherSettingsViewModel(onSaved: () =>
-        {
-            CloseOverlay();
-            var config = GetService<ConfigurationService>().Configuration;
-            if (config.Latitude is { } lat && config.Longitude is { } lon)
-                _ = UpdateWeatherAndLocationAsync(lat, lon, config.GeocodeApiKey ?? "");
-        });
+        CurrentOverlay = new WeatherSettingsViewModel(
+            weatherData: CurrentWeatherData,
+            placement: Placement,
+            onSaved: () =>
+            {
+                CloseOverlay();
+                _ReloadShownInfo(true);
+            });
         IsOverlayVisible = true;
     }
 

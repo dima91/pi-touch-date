@@ -2,6 +2,8 @@
 
 Digital calendar for Raspberry Pi and touchscreen.
 
+Icons created by [Freepik - Flaticon](https://www.flaticon.com/authors/freepik)
+
 ## System set-up
 
 + [Image download](https://downloads.raspberrypi.com/raspios_arm64/images/raspios_arm64-2026-04-21/2026-04-21-raspios-trixie-arm64.img.xz)
