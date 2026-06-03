@@ -24,6 +24,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private DateTime _previousDT;
     private IDisposable? AutoNightModeResetTimer = null;
+    private IDisposable? BrightnessResetTimer = null;
 
     private string _weekDay = "";
     public string WeekDay
@@ -164,6 +165,16 @@ public class MainWindowViewModel : ViewModelBase
                     Console.WriteLine("Auto night mode is enabled, disposing existing timer");
                     AutoNightModeResetTimer.Dispose();
                     AutoNightModeResetTimer = null;
+                }
+                if (BrightnessResetTimer != null)
+                {
+                    BrightnessResetTimer.Dispose();
+                    BrightnessResetTimer = null;
+                }
+                if (currentValue == true)
+                {
+                    Console.WriteLine("Auto night mode enabled, updating screen mode immediately");
+                    UpdateScreenMode(DateTime.Now);
                 }
             });
 
@@ -331,6 +342,11 @@ public class MainWindowViewModel : ViewModelBase
             if (configuration != null && configuration.AutoNightMode)
             {
                 Console.WriteLine("Activating AutoNightModeResetTimer timer..");
+
+                // Disposing if already existing
+                if (AutoNightModeResetTimer != null)
+                    AutoNightModeResetTimer?.Dispose();
+
                 AutoNightModeResetTimer = Observable.Timer(TimeSpan.FromMinutes(20))
                     .ObserveOn(RxApp.MainThreadScheduler)
                     .Subscribe(_ =>
@@ -365,9 +381,33 @@ public class MainWindowViewModel : ViewModelBase
     {
         CurrentOverlayTitle = "Impostazioni";
         CurrentOverlayIcon = GetSemiIcon("SemiIconSetting");
+        // Getting actual sunset and sunrise times
+        var sunrise = CurrentWeatherData?.Sunrise ?? DateTime.Today.AddHours(7);
+        var sunset = CurrentWeatherData?.Sunset ?? DateTime.Today.AddHours(19);
+
         CurrentOverlay = new AppSettingsOverlayViewModel(
+            sunset,
+            sunrise,
             screenBrightness: ScreenBrightness,
-            onBrightnessChanged: value => ScreenBrightness = value);
+            onBrightnessChanged: value =>
+            {
+                var config = GetService<ConfigurationService>().Configuration;
+                if (config.AutoNightMode)
+                {
+                    BrightnessResetTimer?.Dispose();
+                    BrightnessResetTimer = Observable.Timer(TimeSpan.FromMinutes(20))
+                        .ObserveOn(RxApp.MainThreadScheduler)
+                        .Subscribe(_ =>
+                        {
+                            BrightnessResetTimer?.Dispose();
+                            BrightnessResetTimer = null;
+                            var c = GetService<ConfigurationService>().Configuration;
+                            ScreenBrightness = SelectedScreenMode == ScreenMode.Day ? c.DayBrightness : c.NightBrightness;
+                        });
+                }
+                ScreenBrightness = value;
+            }
+            );
 
         IsOverlayVisible = true;
     }
