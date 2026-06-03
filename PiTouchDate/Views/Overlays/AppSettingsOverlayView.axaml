@@ -38,7 +38,7 @@
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                 <TextBlock Text="MODALITÀ NOTTE AUTOMATICA" FontSize="10" FontWeight="Bold"
                                            LetterSpacing="0.5" Opacity="0.5"/>
-                                <TextBlock Text="Passa alla modalità notte tra le 22:00 e le 7:00"
+                                <TextBlock Text="{Binding NightModeScheduleText}"
                                            FontSize="11" Opacity="0.4" Margin="0,2,0,0"/>
                             </StackPanel>
                             <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"

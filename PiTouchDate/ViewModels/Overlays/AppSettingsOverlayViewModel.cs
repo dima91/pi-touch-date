@@ -23,6 +23,12 @@ public class AppSettingsOverlayViewModel : ViewModelBase
         }
     }
 
+    public DateTime SunsetTime { get; private set; }
+    public DateTime SunriseTime { get; private set; }
+
+    public string NightModeScheduleText =>
+        $"Passa alla modalità notte tra le {SunsetTime:HH:mm} (tramonto) e le {SunriseTime:HH:mm} (alba)";
+
     public string SoftwareVersion { get; } =
         Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "—";
 
@@ -47,8 +53,11 @@ public class AppSettingsOverlayViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> RestartCommand { get; }
     public ReactiveCommand<Unit, Unit> ShutdownCommand { get; }
 
-    public AppSettingsOverlayViewModel(int screenBrightness = 255, Action<int>? onBrightnessChanged = null)
+    public AppSettingsOverlayViewModel(DateTime sunriseTime, DateTime sunsetTime, int screenBrightness = 255,
+                                        Action<int>? onBrightnessChanged = null)
     {
+        SunsetTime = sunsetTime;
+        SunriseTime = sunriseTime;
         _screenBrightness = screenBrightness;
         _onBrightnessChanged = onBrightnessChanged;
 

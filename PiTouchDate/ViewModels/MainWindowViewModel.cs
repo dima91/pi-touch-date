@@ -226,7 +226,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             if (forceUpdate || now.Minute % 5 == 0)
             {
-                UpdateScreenmode(now);
+                UpdateScreenMode(now);
             }
         }
         catch (Exception ex)
@@ -301,16 +301,23 @@ public class MainWindowViewModel : ViewModelBase
             Console.Error.WriteLine("Cannot update weather: coordinates not configured");
     }
 
-    private void UpdateScreenmode(DateTime now)
+    private void UpdateScreenMode(DateTime now)
     {
+        Console.WriteLine("Updating screen mode");
         var configuration = GetService<ConfigurationService>().Configuration;
         if (configuration.AutoNightMode && AutoNightModeResetTimer == null)
         {
-            bool isNightHour = CurrentWeatherData != null
-                ? now.Hour >= 23 || now.Hour < 7    // TODO: Prendi da weather info l'alba e il tramonto
-                : now.Hour >= 23 || now.Hour < 7;
-            int dayBrightness = configuration.DayBrightness;
-            int nightBrightness = configuration.NightBrightness;
+            bool isNightHour;
+            if (CurrentWeatherData?.Sunrise != null && CurrentWeatherData?.Sunset != null)
+            {
+                // Use actual sunrise/sunset if available
+                isNightHour = now < CurrentWeatherData.Sunrise.Value || now >= CurrentWeatherData.Sunset.Value;
+            }
+            else
+            {
+                // Fallback to static hours (7 PM to 7 AM)
+                isNightHour = now.Hour >= 19 || now.Hour < 7;
+            }
 
             SelectedScreenMode = isNightHour ? ScreenMode.Night : ScreenMode.Day;
         }
@@ -331,7 +338,7 @@ public class MainWindowViewModel : ViewModelBase
                         Console.WriteLine("Auto night mode reset timer elapsed, resetting screen mode to automatic");
                         AutoNightModeResetTimer?.Dispose();
                         AutoNightModeResetTimer = null;
-                        UpdateScreenmode(DateTime.Now);
+                        UpdateScreenMode(DateTime.Now);
                     });
             }
         }
