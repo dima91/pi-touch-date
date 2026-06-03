@@ -19,9 +19,12 @@ namespace PiTouchDate.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-    private DateTime _previousDT;
     private const int _MINUTES_DELAY_TIMER = 1;
     private const string BACKLIGHT_FILE_PATH = "/sys/devices/platform/soc/3f205000.i2c/i2c-11/i2c-10/10-0045/backlight/10-0045/brightness";
+
+    private DateTime _previousDT;
+    private IDisposable? AutoNightModeResetTimer = null;
+    private IDisposable? BrightnessResetTimer = null;
 
     private string _weekDay = "";
     public string WeekDay
@@ -63,7 +66,7 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     public bool IsDayMode => _selectedScreenMode == ScreenMode.Day;
-    
+
     private int _screenBrightness = 255;
     public int ScreenBrightness
     {
@@ -132,8 +135,11 @@ public class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
+        var configuration = GetService<ConfigurationService>().Configuration;
+
         _ReloadShownInfo(true);
 
+        // Aligns the timer to the next exact minute boundary (e.g. 10:03:42 → wait 18s, then tick every 60s)
         var now = DateTimeOffset.Now;
         var nextMinute = now.AddMinutes(_MINUTES_DELAY_TIMER).AddSeconds(-now.Second).AddMilliseconds(-now.Millisecond);
         var delay = nextMinute - now;
@@ -142,15 +148,42 @@ public class MainWindowViewModel : ViewModelBase
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => _ReloadShownInfo());
 
-        this.WhenAnyValue(x => x.SelectedScreenMode)
-        .Subscribe (mode =>
-        {
-            ScreenBrightness = mode == ScreenMode.Day ? 255 : 40;
-        });
+        // Recomputes brightness whenever the screen mode or configured brightness values change
+        Observable.CombineLatest(
+            this.WhenAnyValue(x => x.SelectedScreenMode),
+            configuration.WhenAnyValue(x => x.DayBrightness),
+            configuration.WhenAnyValue(x => x.NightBrightness),
+            (mode, day, night) => mode == ScreenMode.Day ? day : night)
+            .Subscribe(b => ScreenBrightness = b);
 
+        configuration.WhenAnyValue(x => x.AutoNightMode)
+            .Subscribe(currentValue =>
+            {
+                Console.WriteLine($"AutoNightMode changed to: {currentValue}");
+                if (AutoNightModeResetTimer != null)
+                {
+                    Console.WriteLine("Auto night mode is enabled, disposing existing timer");
+                    AutoNightModeResetTimer.Dispose();
+                    AutoNightModeResetTimer = null;
+                }
+                if (BrightnessResetTimer != null)
+                {
+                    BrightnessResetTimer.Dispose();
+                    BrightnessResetTimer = null;
+                }
+                if (currentValue == true)
+                {
+                    Console.WriteLine("Auto night mode enabled, updating screen mode immediately");
+                    UpdateScreenMode(DateTime.Now);
+                }
+            });
+
+
+        // Writes the brightness value to the touchscreen backlight sysfs file
         this.WhenAnyValue(x => x.ScreenBrightness)
         .Subscribe(
-            brightness => {
+            brightness =>
+            {
                 try
                 {
                     if (File.Exists(BACKLIGHT_FILE_PATH))
@@ -171,19 +204,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         var now = DateTime.Now;
 
-        try {
+        // Updates weekday, date and calendar only when the date changes
+        try
+        {
             if (forceUpdate || _previousDT.Date != now.Date)
             {
-                Console.WriteLine("Updating WeekDay, CurrentDate and Calendar day");
-                var day = now.ToString("dddd");
-                if (!string.IsNullOrEmpty(day))
-                {
-                    WeekDay = char.ToUpperInvariant(day[0]) + day.Substring(1);
-                }
-
-                CurrentDate = now.ToString("d MMMM yyyy").ToUpper();
-
-                CalendarSelectedDate = now.Date;
+                UpdateShownDateInfo(now);
             }
         }
         catch (Exception ex)
@@ -192,15 +218,12 @@ public class MainWindowViewModel : ViewModelBase
         }
 
 
-        try {
+        // Refreshes weather every 15 minutes to avoid overloading the APIs
+        try
+        {
             if (forceUpdate || now.Minute % 15 == 0)
             {
-                Console.WriteLine("Updating weather and placement");
-                var config = GetService<ConfigurationService>().Configuration;
-                if (config.Latitude is { } lat && config.Longitude is { } lon)
-                    _ = UpdateWeatherAndLocationAsync(lat, lon, config.GeocodeApiKey ?? "");
-                else
-                    Console.Error.WriteLine("Cannot update weather: coordinates not configured");
+                UpdateWeatherInfo();
             }
         }
         catch (Exception ex)
@@ -209,9 +232,21 @@ public class MainWindowViewModel : ViewModelBase
         }
 
 
+        // Automatically switches between day/night mode based on the current hour
+        try
+        {
+            if (forceUpdate || now.Minute % 5 == 0)
+            {
+                UpdateScreenMode(now);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during auto night-mode update: {ex.Message}");
+        }
+
+
         CurrentTime = now.ToString("HH:mm");
-
-
         _previousDT = now;
     }
 
@@ -220,13 +255,14 @@ public class MainWindowViewModel : ViewModelBase
         var weatherService = GetService<WeatherDataService>();
         var locationingService = GetService<LocationingService>();
 
+        // Runs both calls in parallel to reduce total wait time
         var weatherTask = weatherService.GetWeatherAsync(lat, lon);
         var locationTask = locationingService.GetLocationNameAsync(lat, lon, geocodeApiKey);
 
         await Task.WhenAll(weatherTask, locationTask);
 
         CurrentWeatherData = weatherTask.Result;
-        
+
         if (CurrentWeatherData != null)
         {
             CurrentTemperature = CurrentWeatherData.CurrentTemperature;
@@ -242,6 +278,7 @@ public class MainWindowViewModel : ViewModelBase
         Placement = location.HasValue ? location.Value : null;
     }
 
+    // Resolves a path icon from app resources by key (e.g. "SemiIconWifi")
     private IconElement? GetSemiIcon(string key)
     {
         if (Application.Current is not null && Application.Current.TryFindResource(key, out var res) && res is Geometry geo)
@@ -251,9 +288,83 @@ public class MainWindowViewModel : ViewModelBase
         return null;
     }
 
+    private void UpdateShownDateInfo(DateTime now)
+    {
+        Console.WriteLine("Updating WeekDay, CurrentDate and Calendar day");
+        var day = now.ToString("dddd");
+        if (!string.IsNullOrEmpty(day))
+        {
+            WeekDay = char.ToUpperInvariant(day[0]) + day.Substring(1);
+        }
+
+        CurrentDate = now.ToString("d MMMM yyyy").ToUpper();
+
+        CalendarSelectedDate = now.Date;
+    }
+
+    private void UpdateWeatherInfo()
+    {
+        Console.WriteLine("Updating weather and placement");
+        var config = GetService<ConfigurationService>().Configuration;
+        if (config.Latitude is { } lat && config.Longitude is { } lon)
+            _ = UpdateWeatherAndLocationAsync(lat, lon, config.GeocodeApiKey ?? "");
+        else
+            Console.Error.WriteLine("Cannot update weather: coordinates not configured");
+    }
+
+    private void UpdateScreenMode(DateTime now)
+    {
+        Console.WriteLine("Updating screen mode");
+        var configuration = GetService<ConfigurationService>().Configuration;
+        if (configuration.AutoNightMode && AutoNightModeResetTimer == null)
+        {
+            bool isNightHour;
+            if (CurrentWeatherData?.Sunrise != null && CurrentWeatherData?.Sunset != null)
+            {
+                // Use actual sunrise/sunset if available
+                isNightHour = now < CurrentWeatherData.Sunrise.Value || now >= CurrentWeatherData.Sunset.Value;
+            }
+            else
+            {
+                // Fallback to static hours (7 PM to 7 AM)
+                isNightHour = now.Hour >= 19 || now.Hour < 7;
+            }
+
+            SelectedScreenMode = isNightHour ? ScreenMode.Night : ScreenMode.Day;
+        }
+    }
+
     public void OnScreenModeCardClicked()
     {
+        try
+        {
+            var configuration = GetService<ConfigurationService>().Configuration;
+            if (configuration != null && configuration.AutoNightMode)
+            {
+                Console.WriteLine("Activating AutoNightModeResetTimer timer..");
+
+                // Disposing if already existing
+                if (AutoNightModeResetTimer != null)
+                    AutoNightModeResetTimer?.Dispose();
+
+                AutoNightModeResetTimer = Observable.Timer(TimeSpan.FromMinutes(20))
+                    .ObserveOn(RxApp.MainThreadScheduler)
+                    .Subscribe(_ =>
+                    {
+                        Console.WriteLine("Auto night mode reset timer elapsed, resetting screen mode to automatic");
+                        AutoNightModeResetTimer?.Dispose();
+                        AutoNightModeResetTimer = null;
+                        UpdateScreenMode(DateTime.Now);
+                    });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error accessing configuration during screen mode toggle: {ex.Message}");
+            return;
+        }
         SelectedScreenMode = SelectedScreenMode == ScreenMode.Day ? ScreenMode.Night : ScreenMode.Day;
+
     }
 
 
@@ -266,12 +377,38 @@ public class MainWindowViewModel : ViewModelBase
     }
 
 
-    public void OnPowerCardClicked()
+    public void OnAppSettingsCardClicked()
     {
-        // Not yet implemented overlay
-        CurrentOverlayTitle = "Azioni di sistema";
-        CurrentOverlayIcon = GetSemiIcon("SemiIconPoweroff");
-        CurrentOverlay = null;
+        CurrentOverlayTitle = "Impostazioni";
+        CurrentOverlayIcon = GetSemiIcon("SemiIconSetting");
+        // Getting actual sunset and sunrise times
+        var sunrise = CurrentWeatherData?.Sunrise ?? DateTime.Today.AddHours(7);
+        var sunset = CurrentWeatherData?.Sunset ?? DateTime.Today.AddHours(19);
+
+        CurrentOverlay = new AppSettingsOverlayViewModel(
+            sunset,
+            sunrise,
+            screenBrightness: ScreenBrightness,
+            onBrightnessChanged: value =>
+            {
+                var config = GetService<ConfigurationService>().Configuration;
+                if (config.AutoNightMode)
+                {
+                    BrightnessResetTimer?.Dispose();
+                    BrightnessResetTimer = Observable.Timer(TimeSpan.FromMinutes(20))
+                        .ObserveOn(RxApp.MainThreadScheduler)
+                        .Subscribe(_ =>
+                        {
+                            BrightnessResetTimer?.Dispose();
+                            BrightnessResetTimer = null;
+                            var c = GetService<ConfigurationService>().Configuration;
+                            ScreenBrightness = SelectedScreenMode == ScreenMode.Day ? c.DayBrightness : c.NightBrightness;
+                        });
+                }
+                ScreenBrightness = value;
+            }
+            );
+
         IsOverlayVisible = true;
     }
 

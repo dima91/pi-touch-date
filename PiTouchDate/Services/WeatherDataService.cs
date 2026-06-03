@@ -72,6 +72,8 @@ public class WeatherDataService
         public double? MinTemperature { get; init; }
         public int WeatherCode { get; init; }
         public bool IsDay { get; init; }
+        public DateTime? Sunrise { get; init; }
+        public DateTime? Sunset { get; init; }
         public Dictionary<DateTime, HourlyInfo> HourlyInfo { get; init; } = new();
 
         public Bitmap? WeatherIcon => GetWeatherCodeIcon(WeatherCode);
@@ -85,7 +87,7 @@ public class WeatherDataService
         "https://api.open-meteo.com/v1/forecast" +
         "?current=weather_code,temperature_2m,is_day" +
         "&hourly=temperature_2m,weather_code" +
-        "&daily=temperature_2m_max,temperature_2m_min" +
+        "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset" +
         "&timezone=auto&forecast_days=1";
 
     public WeatherDataService()
@@ -111,6 +113,8 @@ public class WeatherDataService
             bool isDay = true;
             double? maxTemp = null;
             double? minTemp = null;
+            DateTime? sunriseTime = null;
+            DateTime? sunsetTime = null;
             var hourlyInfo = new Dictionary<DateTime, HourlyInfo>();
 
             if (root.TryGetProperty("current", out var current))
@@ -129,6 +133,16 @@ public class WeatherDataService
                     maxTemp = maxArr[0].GetDouble();
                 if (daily.TryGetProperty("temperature_2m_min", out var minArr) && minArr.GetArrayLength() > 0)
                     minTemp = minArr[0].GetDouble();
+                if (daily.TryGetProperty("sunrise", out var sunriseArr) && sunriseArr.GetArrayLength() > 0)
+                {
+                    if (DateTime.TryParse(sunriseArr[0].GetString(), out var sunrise))
+                        sunriseTime = sunrise;
+                }
+                if (daily.TryGetProperty("sunset", out var sunsetArr) && sunsetArr.GetArrayLength() > 0)
+                {
+                    if (DateTime.TryParse(sunsetArr[0].GetString(), out var sunset))
+                        sunsetTime = sunset;
+                }
             }
 
             if (root.TryGetProperty("hourly", out var hourly))
@@ -159,6 +173,8 @@ public class WeatherDataService
                 IsDay = isDay,
                 MaxTemperature = maxTemp,
                 MinTemperature = minTemp,
+                Sunrise = sunriseTime,
+                Sunset = sunsetTime,
                 HourlyInfo = hourlyInfo
             };
         }
