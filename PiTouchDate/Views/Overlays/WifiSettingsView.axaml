@@ -67,7 +67,7 @@
 
         <Grid IsVisible="{Binding SelectedNetwork, Converter={x:Static ObjectConverters.IsNotNull}}"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              RowDefinitions="Auto, Auto, *">
+              RowDefinitions="Auto, Auto, Auto, *">
             <!-- Control buttons -->
             <Grid Grid.Row="0" ColumnDefinitions="*,Auto,*" HorizontalAlignment="Stretch">
                 <Button Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" 
@@ -109,8 +109,21 @@
                 </Button>
             </Panel>
 
+            <!-- Status message -->
+            <Panel Grid.Row="2" Margin="4,6,4,0"
+                   IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding StatusMessage}"
+                           IsVisible="{Binding !StatusIsError}"
+                           Foreground="{DynamicResource SemiGreen5Color}"
+                           TextWrapping="Wrap" FontSize="12"/>
+                <TextBlock Text="{Binding StatusMessage}"
+                           IsVisible="{Binding StatusIsError}"
+                           Foreground="{DynamicResource SemiRed4Color}"
+                           TextWrapping="Wrap" FontSize="12"/>
+            </Panel>
+
             <!-- Screen keyboard -->
-            <controls:ScreenKeyboard Grid.Row="2" Margin="0,10,0,0" KeyPressCommand="{Binding KeyPressCommand}"/>
+            <controls:ScreenKeyboard Grid.Row="3" Margin="0,10,0,0" KeyPressCommand="{Binding KeyPressCommand}"/>
         </Grid>
     </Panel>
 </UserControl>

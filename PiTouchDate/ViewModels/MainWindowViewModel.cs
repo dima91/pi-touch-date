@@ -389,6 +389,11 @@ public class MainWindowViewModel : ViewModelBase
             sunset,
             sunrise,
             screenBrightness: ScreenBrightness,
+            onOpenWifi: () =>
+            {
+                CloseOverlay();
+                OnWifiCardClicked();
+            },
             onBrightnessChanged: value =>
             {
                 var config = GetService<ConfigurationService>().Configuration;

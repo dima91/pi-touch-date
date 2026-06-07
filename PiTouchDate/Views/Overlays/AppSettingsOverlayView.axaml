@@ -73,6 +73,18 @@
                     </StackPanel>
                 </controls:Card>
 
+                <!-- WiFi card -->
+                <controls:Card HorizontalContentAlignment="Stretch" Command="{Binding OpenWifiCommand}">
+                    <Grid ColumnDefinitions="Auto, *, Auto" Margin="4,6">
+                        <PathIcon Grid.Column="0" Data="{DynamicResource SemiIconWifi}"
+                                  Width="20" Height="20" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="Wi-Fi" FontSize="16" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" Margin="12,0"/>
+                        <PathIcon Grid.Column="2" Data="{DynamicResource SemiIconChevronRight}"
+                                  Width="14" Height="14" Opacity="0.4" VerticalAlignment="Center"/>
+                    </Grid>
+                </controls:Card>
+
             </StackPanel>
         </ScrollViewer>
 
