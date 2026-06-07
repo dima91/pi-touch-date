@@ -50,17 +50,20 @@ public class AppSettingsOverlayViewModel : ViewModelBase
         set => GetService<ConfigurationService>().Configuration.AutoNightMode = value;
     }
 
+    public ReactiveCommand<Unit, Unit> OpenWifiCommand { get; }
     public ReactiveCommand<Unit, Unit> RestartCommand { get; }
     public ReactiveCommand<Unit, Unit> ShutdownCommand { get; }
 
     public AppSettingsOverlayViewModel(DateTime sunriseTime, DateTime sunsetTime, int screenBrightness = 255,
-                                        Action<int>? onBrightnessChanged = null)
+                                        Action<int>? onBrightnessChanged = null,
+                                        Action? onOpenWifi = null)
     {
         SunsetTime = sunsetTime;
         SunriseTime = sunriseTime;
         _screenBrightness = screenBrightness;
         _onBrightnessChanged = onBrightnessChanged;
 
+        OpenWifiCommand = ReactiveCommand.Create(() => onOpenWifi?.Invoke());
         RestartCommand = ReactiveCommand.Create(() =>
             { Process.Start(new ProcessStartInfo("sudo", "reboot") { CreateNoWindow = true }); });
         ShutdownCommand = ReactiveCommand.Create(() =>
