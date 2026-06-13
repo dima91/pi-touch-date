@@ -197,7 +197,10 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
             StatusIsError = !success;
             // Rimuove le sequenze di escape ANSI (colori, grassetto, ecc.) e pulisce gli spazi extra
             StatusMessage = Regex.Replace(message ?? "", @"\x1B\[[0-?]*[ -/]*[@-~]", "").Trim();
-            
+
+            if (success)
+                SelectedNetwork = null;
+
             connectionResult = success;
         }
         catch (Exception ex) {
