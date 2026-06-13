@@ -148,12 +148,14 @@ public class MainWindowViewModel : ViewModelBase
             .ObserveOn(RxApp.MainThreadScheduler)
             .Subscribe(_ => _ReloadShownInfo());
 
-        // Recomputes brightness whenever the screen mode or configured brightness values change
+        // Recomputes brightness whenever the screen mode, configured brightness values, or manual override change.
+        // ManualBrightness takes priority; null means fall back to day/night value.
         Observable.CombineLatest(
             this.WhenAnyValue(x => x.SelectedScreenMode),
             configuration.WhenAnyValue(x => x.DayBrightness),
             configuration.WhenAnyValue(x => x.NightBrightness),
-            (mode, day, night) => mode == ScreenMode.Day ? day : night)
+            configuration.WhenAnyValue(x => x.ManualBrightness),
+            (mode, day, night, manual) => manual ?? (mode == ScreenMode.Day ? day : night))
             .Subscribe(b => ScreenBrightness = b);
 
         configuration.WhenAnyValue(x => x.AutoNightMode)
@@ -406,11 +408,16 @@ public class MainWindowViewModel : ViewModelBase
                         {
                             BrightnessResetTimer?.Dispose();
                             BrightnessResetTimer = null;
-                            var c = GetService<ConfigurationService>().Configuration;
-                            ScreenBrightness = SelectedScreenMode == ScreenMode.Day ? c.DayBrightness : c.NightBrightness;
+                            // Clearing ManualBrightness causes CombineLatest to restore day/night brightness.
+                            GetService<ConfigurationService>().Configuration.ManualBrightness = null;
                         });
+                    ScreenBrightness = value;
                 }
-                ScreenBrightness = value;
+                else
+                {
+                    // Persists manual brightness to config so it survives restarts.
+                    config.ManualBrightness = value;
+                }
             }
             );
 
