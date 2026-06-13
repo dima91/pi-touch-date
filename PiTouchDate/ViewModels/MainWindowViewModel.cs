@@ -176,6 +176,7 @@ public class MainWindowViewModel : ViewModelBase
                 if (currentValue == true)
                 {
                     Console.WriteLine("Auto night mode enabled, updating screen mode immediately");
+                    configuration.ManualBrightness = null;
                     UpdateScreenMode(DateTime.Now);
                 }
             });
@@ -396,6 +397,7 @@ public class MainWindowViewModel : ViewModelBase
                 CloseOverlay();
                 OnWifiCardClicked();
             },
+            currentBrightnessSource: this.WhenAnyValue(x => x.ScreenBrightness),
             onBrightnessChanged: value =>
             {
                 var config = GetService<ConfigurationService>().Configuration;

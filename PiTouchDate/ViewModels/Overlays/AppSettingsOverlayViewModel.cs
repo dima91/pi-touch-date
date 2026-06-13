@@ -8,9 +8,10 @@ using PiTouchDate.ViewModels;
 
 namespace PiTouchDate.Overlays;
 
-public class AppSettingsOverlayViewModel : ViewModelBase
+public class AppSettingsOverlayViewModel : ViewModelBase, IDisposable
 {
     private readonly Action<int>? _onBrightnessChanged;
+    private IDisposable? _brightnessSubscription;
 
     private int _screenBrightness;
     public int ScreenBrightness
@@ -56,17 +57,27 @@ public class AppSettingsOverlayViewModel : ViewModelBase
 
     public AppSettingsOverlayViewModel(DateTime sunriseTime, DateTime sunsetTime, int screenBrightness = 255,
                                         Action<int>? onBrightnessChanged = null,
-                                        Action? onOpenWifi = null)
+                                        Action? onOpenWifi = null,
+                                        IObservable<int>? currentBrightnessSource = null)
     {
         SunsetTime = sunsetTime;
         SunriseTime = sunriseTime;
         _screenBrightness = screenBrightness;
         _onBrightnessChanged = onBrightnessChanged;
 
+        _brightnessSubscription = currentBrightnessSource?.Subscribe(b =>
+            this.RaiseAndSetIfChanged(ref _screenBrightness, b, nameof(ScreenBrightness)));
+
         OpenWifiCommand = ReactiveCommand.Create(() => onOpenWifi?.Invoke());
         RestartCommand = ReactiveCommand.Create(() =>
             { Process.Start(new ProcessStartInfo("sudo", "reboot") { CreateNoWindow = true }); });
         ShutdownCommand = ReactiveCommand.Create(() =>
             { Process.Start(new ProcessStartInfo("sudo", "shutdown -h now") { CreateNoWindow = true }); });
+    }
+
+    public void Dispose()
+    {
+        _brightnessSubscription?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
