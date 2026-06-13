@@ -45,8 +45,8 @@ jobs:
 
       - name: Deploy and Restart Service
         run: |
-          systemctl stop pi-touch-date.service || true
+          sudo systemctl stop pi-touch-date.service || true
           mkdir -p /home/pi/pi-touch-date
           cp -r ./deploy/* /home/pi/pi-touch-date/
           chmod +x /home/pi/pi-touch-date/PiTouchDate
-          systemctl start pi-touch-date.service
+          sudo systemctl start pi-touch-date.service

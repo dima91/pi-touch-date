@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Reactive;
+using System.Text.RegularExpressions;
 
 namespace PiTouchDate.Overlays;
 
@@ -48,6 +49,20 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
     {
         get => _wifiPassword;
         set => this.RaiseAndSetIfChanged(ref _wifiPassword, value);
+    }
+
+    private string? _statusMessage = null;
+    public string? StatusMessage
+    {
+        get => _statusMessage;
+        set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
+    }
+
+    private bool _statusIsError = false;
+    public bool StatusIsError
+    {
+        get => _statusIsError;
+        set => this.RaiseAndSetIfChanged(ref _statusIsError, value);
     }
 
     private bool _showPassword = false;
@@ -178,12 +193,18 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
                 WifiPassword);
 
             var (success, message) = await _connectionTask;
+            
+            StatusIsError = !success;
+            // Rimuove le sequenze di escape ANSI (colori, grassetto, ecc.) e pulisce gli spazi extra
+            StatusMessage = Regex.Replace(message ?? "", @"\x1B\[[0-?]*[ -/]*[@-~]", "").Trim();
 
-            Console.WriteLine($"Connection result: {success}, {message}");
-            if (success) { SelectedNetwork = null; }
+            if (success)
+                SelectedNetwork = null;
+
+            connectionResult = success;
         }
         catch (Exception ex) {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"Got error! {ex.Message}");
             connectionResult = false;
         }
 
@@ -195,6 +216,7 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
 
     private void CancelConnectionCommandHandler()
     {
+        StatusMessage = null;
         SelectedNetwork = null;
     }
 
