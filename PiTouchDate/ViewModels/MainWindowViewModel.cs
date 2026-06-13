@@ -317,7 +317,6 @@ public class MainWindowViewModel : ViewModelBase
 
     private void UpdateScreenMode(DateTime now)
     {
-        Console.WriteLine("Updating screen mode");
         var configuration = GetService<ConfigurationService>().Configuration;
         if (configuration.AutoNightMode && AutoNightModeResetTimer == null)
         {
