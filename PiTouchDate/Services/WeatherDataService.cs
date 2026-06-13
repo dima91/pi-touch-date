@@ -163,7 +163,6 @@ public class WeatherDataService
                         }
                     }
                 }
-                
             }
 
             return new WeatherData

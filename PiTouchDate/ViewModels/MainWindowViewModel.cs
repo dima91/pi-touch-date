@@ -386,8 +386,8 @@ public class MainWindowViewModel : ViewModelBase
         var sunset = CurrentWeatherData?.Sunset ?? DateTime.Today.AddHours(19);
 
         CurrentOverlay = new AppSettingsOverlayViewModel(
-            sunset,
             sunrise,
+            sunset,
             screenBrightness: ScreenBrightness,
             onOpenWifi: () =>
             {
