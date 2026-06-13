@@ -3,6 +3,7 @@ namespace PiTouchDate.Services;
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Reactive.Linq;
 using ReactiveUI;
 
 public class AppConfiguration : ReactiveObject
@@ -104,7 +105,11 @@ public class ConfigurationService
         _configFilePath = Path.Combine(basePath, ConfigFileName);
         Configuration = Load();
         // Subscribe after Load() to avoid triggering Save() during initialization.
-        Configuration.Changed.Subscribe(_ => Save());
+        // Throttle batches rapid changes (e.g. slider drags) into a single write after 500ms of silence.
+        Configuration.Changed
+            .Throttle(TimeSpan.FromMilliseconds(500))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => Save());
     }
 
     private AppConfiguration Load()
