@@ -170,6 +170,7 @@ public class MainWindowViewModel : ViewModelBase
                 }
                 if (BrightnessResetTimer != null)
                 {
+                    Console.WriteLine("Brightness reset timer is active, disposing existing timer");
                     BrightnessResetTimer.Dispose();
                     BrightnessResetTimer = null;
                 }
@@ -402,17 +403,21 @@ public class MainWindowViewModel : ViewModelBase
                 var config = GetService<ConfigurationService>().Configuration;
                 if (config.AutoNightMode)
                 {
+                    Console.WriteLine("Auto night mode is enabled, starting brightness reset timer");
+
                     BrightnessResetTimer?.Dispose();
                     BrightnessResetTimer = Observable.Timer(TimeSpan.FromMinutes(20))
                         .ObserveOn(RxApp.MainThreadScheduler)
                         .Subscribe(_ =>
                         {
+                            Console.WriteLine("Brightness reset timer elapsed, resetting brightness to automatic value");
                             BrightnessResetTimer?.Dispose();
                             BrightnessResetTimer = null;
                             // Clearing ManualBrightness causes CombineLatest to restore day/night brightness.
                             GetService<ConfigurationService>().Configuration.ManualBrightness = null;
                         });
-                    ScreenBrightness = value;
+                    // In auto mode, use ManualBrightness as a temporary override so the timer reset can restore automatic value.
+                    config.ManualBrightness = value;
                 }
                 else
                 {
