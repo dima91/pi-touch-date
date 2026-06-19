@@ -207,6 +207,8 @@ public class MainWindowViewModel : ViewModelBase
     {
         var now = DateTime.Now;
 
+        CurrentTime = now.ToString("HH:mm");
+
         // Updates weekday, date and calendar only when the date changes
         try
         {
@@ -248,8 +250,6 @@ public class MainWindowViewModel : ViewModelBase
             Console.WriteLine($"Error during auto night-mode update: {ex.Message}");
         }
 
-
-        CurrentTime = now.ToString("HH:mm");
         _previousDT = now;
     }
 
