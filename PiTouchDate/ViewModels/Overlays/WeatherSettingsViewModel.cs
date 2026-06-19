@@ -37,6 +37,9 @@ public class WeatherSettingsViewModel : ViewModelBase
     public string? WeatherDescription { get; }
     public string? Placement { get; }
     public WeatherData? WeatherData { get; }
+    public string? LastUpdateText => WeatherData?.UpdateTime == default
+        ? null
+        : WeatherData?.UpdateTime.ToString("HH:mm");
     public List<DayPeriodWeatherInfo?> WeatherInfoDayPeriods { get; init; }
 
     private bool _isLatitudeActive = true;

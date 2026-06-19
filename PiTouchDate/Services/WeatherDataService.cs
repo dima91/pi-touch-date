@@ -75,6 +75,7 @@ public class WeatherDataService
         public DateTime? Sunrise { get; init; }
         public DateTime? Sunset { get; init; }
         public Dictionary<DateTime, HourlyInfo> HourlyInfo { get; init; } = new();
+        public DateTime UpdateTime { get; init; }
 
         public Bitmap? WeatherIcon => GetWeatherCodeIcon(WeatherCode);
         public bool HasWeatherIcon => WeatherIcon != null;
@@ -174,7 +175,8 @@ public class WeatherDataService
                 MinTemperature = minTemp,
                 Sunrise = sunriseTime,
                 Sunset = sunsetTime,
-                HourlyInfo = hourlyInfo
+                HourlyInfo = hourlyInfo,
+                UpdateTime = DateTime.Now
             };
         }
         catch (Exception ex)
