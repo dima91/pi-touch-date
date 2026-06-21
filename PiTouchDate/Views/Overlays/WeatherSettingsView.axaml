@@ -19,16 +19,29 @@
         <!-- Info view (default) -->
         <Grid IsVisible="{Binding !WeatherSettingsSelected}" RowDefinitions="Auto,*">
 
-            <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                    Background="Transparent" BorderThickness="0"
-                    Margin="0,4,4,0" Grid.Row="0"
-                    Command="{Binding SelectWeatherSettingsCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="Impostazioni" Opacity="0.6"/>
-                    <PathIcon Data="{DynamicResource SemiIconChevronRight}"
-                              Width="12" Height="12" Opacity="0.4" VerticalAlignment="Center"/>
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4"
+                            VerticalAlignment="Center" Margin="4,4,0,0"
+                            IsVisible="{Binding LastUpdateText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <PathIcon Data="{DynamicResource SemiIconRefresh}"
+                              Width="11" Height="11" Opacity="0.4" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding LastUpdateText, StringFormat='Aggiornato alle {0}'}"
+                               FontSize="12" Opacity="0.5"/>
                 </StackPanel>
-            </Button>
+
+                <Button Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        Background="Transparent" BorderThickness="0"
+                        Margin="0,4,4,0"
+                        Command="{Binding SelectWeatherSettingsCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="Impostazioni" Opacity="0.6"/>
+                        <PathIcon Data="{DynamicResource SemiIconChevronRight}"
+                                  Width="12" Height="12" Opacity="0.4" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+            </Grid>
 
             <Grid Grid.Row="1" RowDefinitions="Auto,*" HorizontalAlignment="Stretch">
 

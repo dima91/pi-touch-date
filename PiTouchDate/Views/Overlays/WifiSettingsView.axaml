@@ -11,20 +11,33 @@
              x:DataType="vm:WifiSettingsViewModel">
 
     <Panel>
-        <Grid RowDefinitions="Auto, Auto, *" IsVisible="{Binding SelectedNetwork, Converter={x:Static ObjectConverters.IsNull}}">
+        <Grid RowDefinitions="Auto, Auto, Auto, *" IsVisible="{Binding SelectedNetwork, Converter={x:Static ObjectConverters.IsNull}}">
             <!-- Scanning progress bar -->
             <ProgressBar Grid.Row="0" IsIndeterminate="True" IsVisible="{Binding Scanning}" 
                         Height="2" VerticalAlignment="Top" Foreground="{DynamicResource SemiBlue4Color}"/>
 
+            <!-- Internet connection status -->
+            <Panel Grid.Row="1" Margin="15,8,15,0"
+                   IsVisible="{Binding InternetConnectionStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding InternetConnectionStatusMessage}"
+                           IsVisible="{Binding !InternetConnectionAvailable}"
+                           Foreground="{DynamicResource SemiRed4Color}"
+                           TextWrapping="Wrap" FontSize="12"/>
+                <TextBlock Text="{Binding InternetConnectionStatusMessage}"
+                           IsVisible="{Binding InternetConnectionAvailable}"
+                           Foreground="{DynamicResource SemiGreen5Color}"
+                           TextWrapping="Wrap" FontSize="12"/>
+            </Panel>
+
             <!-- Table header -->
-            <Grid Grid.Row="1" ColumnDefinitions="*, 80, 40" Margin="15, 10, 15, 5" Opacity="0.5"
+            <Grid Grid.Row="2" ColumnDefinitions="*, 80, 40" Margin="15, 10, 15, 5" Opacity="0.5"
                   IsVisible="{Binding !IsRefreshError}">
                 <TextBlock Grid.Column="0" Text="NOME RETE" FontSize="10" FontWeight="Bold" LetterSpacing="0.5"/>
                 <TextBlock Grid.Column="1" Text="SEGNALE" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center"/>
             </Grid>
 
             <!-- Networks list -->
-            <Panel Grid.Row="2">
+            <Panel Grid.Row="3">
                 <controls:Spinner IsVisible="{Binding IsRefreshError}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <ListBox IsVisible="{Binding !IsRefreshError}"

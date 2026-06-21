@@ -12,6 +12,9 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Reactive;
 using System.Text.RegularExpressions;
+using System.Net.NetworkInformation;
+using Avalonia.Media;
+
 
 namespace PiTouchDate.Overlays;
 
@@ -25,7 +28,8 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
     public bool IsConnecting => _isConnecting.Value;
 
     private bool _scanning = false;
-    public bool Scanning {
+    public bool Scanning
+    {
         get => _scanning;
         set => this.RaiseAndSetIfChanged(ref _scanning, value);
     }
@@ -57,6 +61,21 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
         get => _statusMessage;
         set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
     }
+
+    private bool _internetConnectionAvailable = false;
+    public bool InternetConnectionAvailable
+    {
+        get => _internetConnectionAvailable;
+        set => this.RaiseAndSetIfChanged(ref _internetConnectionAvailable, value);
+    }
+    
+    private string? _internetConnectionStatusMessage = null;
+    public string? InternetConnectionStatusMessage
+    {
+        get => _internetConnectionStatusMessage;
+        set => this.RaiseAndSetIfChanged(ref _internetConnectionStatusMessage, value);
+    }
+
 
     private bool _statusIsError = false;
     public bool StatusIsError
@@ -104,6 +123,8 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
             .ToProperty(this, x => x.IsConnecting, scheduler: RxApp.MainThreadScheduler);
 
         _ = StartScanningLoop(_cts.Token);
+
+        _ = ConnectionStatusLoop(_cts.Token);
     }
 
 
@@ -114,7 +135,8 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
             if (SelectedNetwork == null)
             {
                 Scanning = true;
-                try {
+                try
+                {
                     await RefreshNetworks(ct);
                     IsRefreshError = false;
                 }
@@ -137,6 +159,58 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
             try
             {
                 await Task.Delay(TimeSpan.FromSeconds(10), ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+        }
+    }
+
+
+    private async Task<bool> IsInternetAvailable()
+    {
+        try
+        {
+            using var ping = new Ping();
+            // Ping a Google DNS (8.8.8.8) o Cloudflare (1.1.1.1)
+            var reply = await ping.SendPingAsync("8.8.8.8", 1000);
+
+            return reply != null && reply.Status == IPStatus.Success;
+        }
+        catch
+        {
+            return false;
+        }
+
+    }
+
+
+    private async Task ConnectionStatusLoop(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            Console.WriteLine("Checking internet connection...");
+
+            try
+            {
+                InternetConnectionAvailable = await IsInternetAvailable();
+                InternetConnectionStatusMessage = InternetConnectionAvailable
+                    ? "Connesso ad internet"
+                    : "Nessuna connessione internet";
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ping error: {ex.Message}");
+            }
+
+            try
+            {
+                await Task.Delay(4000, ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -184,7 +258,7 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
 
         if (SelectedNetwork == null)
             return connectionResult;
-        
+
         try
         {
             _connectionTask = _wifiManager.CreateAndActivateUsingNmcliAsync(
@@ -193,17 +267,15 @@ public class WifiSettingsViewModel : ViewModelBase, IDisposable
                 WifiPassword);
 
             var (success, message) = await _connectionTask;
-            
+
             StatusIsError = !success;
             // Rimuove le sequenze di escape ANSI (colori, grassetto, ecc.) e pulisce gli spazi extra
             StatusMessage = Regex.Replace(message ?? "", @"\x1B\[[0-?]*[ -/]*[@-~]", "").Trim();
 
-            if (success)
-                SelectedNetwork = null;
-
             connectionResult = success;
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             Console.WriteLine($"Got error! {ex.Message}");
             connectionResult = false;
         }
