@@ -50,3 +50,6 @@ jobs:
           cp -rf ./deploy/* /home/pi/pi-touch-date/
           chmod +x /home/pi/pi-touch-date/PiTouchDate
           sudo systemctl start pi-touch-date.service
+          sleep 10
+          sudo systemctl status pi-touch-date.service
+          sudo journalctl -u pi-touch-date.service --no-pager --since "5 minutes ago"
